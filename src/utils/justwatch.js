@@ -2,6 +2,7 @@ import { STREAMING_SERVICES } from "./constants";
 
 export async function fetchJustWatch(retries = 3) {
   const services = STREAMING_SERVICES.map((service) => service.jwId);
+  const maxAttempts = Math.min(retries, 3);
 
   const query = `
     query GetPopularTitles($providers: [String!]!) {
@@ -36,13 +37,20 @@ export async function fetchJustWatch(retries = 3) {
 
   const url = "/.netlify/functions/justwatch";
 
-  for (let attempt = 0; attempt < retries; attempt += 1) {
+  for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => {
+      controller.abort();
+    }, 10000);
+
     try {
       const response = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query, variables: { providers: services } }),
+        signal: controller.signal,
       });
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
@@ -92,15 +100,17 @@ export async function fetchJustWatch(retries = 3) {
         })
         .filter((title) => title.streamingOn.length > 0);
     } catch (error) {
-      if (attempt === retries - 1) {
-        throw error;
+      clearTimeout(timeoutId);
+
+      if (attempt === maxAttempts - 1) {
+        throw new Error("JustWatch request failed after 3 attempts");
       }
 
       await new Promise((resolve) => {
-        setTimeout(resolve, 1500 * (attempt + 1));
+        setTimeout(resolve, 2000);
       });
     }
   }
 
-  return [];
+  throw new Error("JustWatch request failed after 3 attempts");
 }
