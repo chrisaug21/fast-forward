@@ -10,7 +10,7 @@ export default function Settings({
   onPlexUrlChange,
   onPlexTokenChange,
   onExcludedLibrariesChange,
-  justWatchCacheAge,
+  streamingCacheAge,
   watchlistCount,
   watchedCount,
   onClearWatchData,
@@ -44,7 +44,7 @@ export default function Settings({
           onExcludedLibrariesChange={onExcludedLibrariesChange}
         />
         <DataSection
-          justWatchCacheAge={justWatchCacheAge}
+          streamingCacheAge={streamingCacheAge}
           watchlistCount={watchlistCount}
           watchedCount={watchedCount}
           onClearWatchData={onClearWatchData}

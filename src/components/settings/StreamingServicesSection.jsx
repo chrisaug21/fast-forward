@@ -22,7 +22,7 @@ export default function StreamingServicesSection() {
         ))}
       </div>
       <div style={{ fontSize: 11, color: "#444", marginTop: 10 }}>
-        Hardcoded to your services. Fetched from JustWatch weekly.
+        Hardcoded to your services. Fetched from the streaming catalog weekly.
       </div>
     </SettingsCard>
   );

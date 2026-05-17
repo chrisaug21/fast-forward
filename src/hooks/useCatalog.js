@@ -37,10 +37,10 @@ export function useCatalog(notify) {
     readStorage(STORAGE_KEYS.plexExcluded, DEFAULT_EXCLUDED_LIBRARIES)
   );
   const [catalog, setCatalog] = useState(getInitialCatalogState);
-  const [jwStatus, setJwStatus] = useState(getInitialStreamingStatus);
+  const [streamingStatus, setStreamingStatus] = useState(getInitialStreamingStatus);
   const [plexStatus, setPlexStatus] = useState("idle");
   const notifyRef = useRef(notify);
-  const isFetchingJustWatchRef = useRef(false);
+  const isFetchingStreamingRef = useRef(false);
 
   useEffect(() => {
     notifyRef.current = notify;
@@ -61,13 +61,13 @@ export function useCatalog(notify) {
     writeStorage(STORAGE_KEYS.plexExcluded, value);
   }, []);
 
-  const loadJustWatch = useCallback(async () => {
-    if (isFetchingJustWatchRef.current) {
+  const loadStreamingCatalog = useCallback(async () => {
+    if (isFetchingStreamingRef.current) {
       return;
     }
 
-    isFetchingJustWatchRef.current = true;
-    setJwStatus("loading");
+    isFetchingStreamingRef.current = true;
+    setStreamingStatus("loading");
 
     try {
       const results = await fetchStreamingCatalog();
@@ -77,13 +77,13 @@ export function useCatalog(notify) {
         const plexItems = previousCatalog.filter((item) => item.source === "plex");
         return [...results, ...plexItems];
       });
-      setJwStatus("ok");
+      setStreamingStatus("ok");
       notifyRef.current(`Loaded ${results.length} streaming titles`, "success");
     } catch {
-      setJwStatus("error");
-      notifyRef.current("JustWatch fetch failed. Using cache if available.", "error");
+      setStreamingStatus("error");
+      notifyRef.current("Streaming catalog fetch failed. Using cache if available.", "error");
     } finally {
-      isFetchingJustWatchRef.current = false;
+      isFetchingStreamingRef.current = false;
     }
   }, []);
 
@@ -116,7 +116,7 @@ export function useCatalog(notify) {
     }
   }, [excludedLibraries, plexToken, plexUrl]);
 
-  const getJustWatchCacheAge = useCallback(() => {
+  const getStreamingCacheAge = useCallback(() => {
     const timestamp = readStorage(STORAGE_KEYS.justWatchCacheTimestamp, 0);
 
     if (!timestamp) {
@@ -129,7 +129,7 @@ export function useCatalog(notify) {
 
   const clearCatalogData = useCallback(() => {
     setCatalog([]);
-    setJwStatus("idle");
+    setStreamingStatus("idle");
     setPlexStatus("idle");
     removeStorage(STORAGE_KEYS.justWatchCache);
     removeStorage(STORAGE_KEYS.justWatchCacheTimestamp);
@@ -144,14 +144,14 @@ export function useCatalog(notify) {
 
     if (isStale && justWatchCache.length === 0) {
       const timeoutId = setTimeout(() => {
-        loadJustWatch();
+        loadStreamingCatalog();
       }, 0);
 
       return () => {
         clearTimeout(timeoutId);
       };
     }
-  }, [loadJustWatch]);
+  }, [loadStreamingCatalog]);
 
   return {
     plexToken,
@@ -161,11 +161,11 @@ export function useCatalog(notify) {
     excludedLibraries,
     setExcludedLibraries,
     catalog,
-    jwStatus,
+    streamingStatus,
     plexStatus,
-    loadJustWatch,
+    loadStreamingCatalog,
     loadPlex,
-    getJustWatchCacheAge,
+    getStreamingCacheAge,
     clearCatalogData,
   };
 }

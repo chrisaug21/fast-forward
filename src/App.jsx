@@ -195,11 +195,11 @@ export default function App() {
             catalog={catalogState.catalog}
             watchlist={watchlistState.watchlist}
             watched={watchlistState.watched}
-            jwStatus={catalogState.jwStatus}
+            streamingStatus={catalogState.streamingStatus}
             plexStatus={catalogState.plexStatus}
-            onLoadJustWatch={catalogState.loadJustWatch}
+            onLoadStreamingCatalog={catalogState.loadStreamingCatalog}
             onLoadPlex={catalogState.loadPlex}
-            justWatchCacheAge={catalogState.getJustWatchCacheAge()}
+            streamingCacheAge={catalogState.getStreamingCacheAge()}
             onAddToWatchlist={watchlistState.addToWatchlist}
             onMarkWatched={watchlistState.markWatched}
             onNotify={notify}
@@ -223,7 +223,7 @@ export default function App() {
             onPlexUrlChange={catalogState.setPlexUrl}
             onPlexTokenChange={catalogState.setPlexToken}
             onExcludedLibrariesChange={catalogState.setExcludedLibraries}
-            justWatchCacheAge={catalogState.getJustWatchCacheAge()}
+            streamingCacheAge={catalogState.getStreamingCacheAge()}
             watchlistCount={watchlistState.watchlist.length}
             watchedCount={watchlistState.watched.length}
             onClearWatchData={watchlistState.clearWatchData}

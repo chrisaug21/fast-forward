@@ -3,7 +3,7 @@ import { removeStorage } from "../../utils/storage";
 import SettingsCard from "./SettingsCard";
 
 export default function DataSection({
-  justWatchCacheAge,
+  streamingCacheAge,
   watchlistCount,
   watchedCount,
   onClearWatchData,
@@ -30,7 +30,7 @@ export default function DataSection({
       <div style={{ fontSize: 11, color: "#555", lineHeight: 1.8 }}>
         All data stored locally in this browser.
         <br />
-        JustWatch cache: {justWatchCacheAge || "not fetched"}
+        Streaming cache: {streamingCacheAge || "not fetched"}
         <br />
         Watchlist: {watchlistCount} titles
         <br />
