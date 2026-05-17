@@ -112,7 +112,11 @@ export function useCatalog(notify) {
       notifyRef.current(`Loaded ${results.length} titles from Plex`, "success");
     } catch (error) {
       setPlexStatus("error");
-      notifyRef.current(error.message || "Plex connection failed", "error");
+      console.debug("Plex connection error", error);
+      notifyRef.current(
+        "Unable to connect to Plex. Please check your network or credentials.",
+        "error"
+      );
     }
   }, [excludedLibraries, plexToken, plexUrl]);
 
@@ -137,12 +141,11 @@ export function useCatalog(notify) {
   }, []);
 
   useEffect(() => {
-    const justWatchCache = readStorage(STORAGE_KEYS.justWatchCache, []);
     const justWatchTimestamp = readStorage(STORAGE_KEYS.justWatchCacheTimestamp, 0);
 
     const isStale = Date.now() - justWatchTimestamp > SEVEN_DAYS_MS;
 
-    if (isStale && justWatchCache.length === 0) {
+    if (isStale) {
       const timeoutId = setTimeout(() => {
         loadStreamingCatalog();
       }, 0);

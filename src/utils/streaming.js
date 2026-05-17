@@ -82,9 +82,11 @@ export default async function fetchStreamingCatalog() {
       const shows = await fetchStreamingBatch(request.service, request.type);
 
       shows.forEach((show) => {
+        const showType = show.showType || show.type || "unknown";
         const dedupeKey =
-          show.tmdbId ??
-          `${request.service}:${request.type}:${show.title}:${show.releaseYear || show.firstAirYear || "unknown"}`;
+          show.tmdbId != null
+            ? `${show.tmdbId}:${showType}`
+            : `${request.service}:${request.type}:${showType}:${show.title}:${show.releaseYear || show.firstAirYear || "unknown"}`;
 
         if (!combinedShows.has(dedupeKey)) {
           combinedShows.set(dedupeKey, {

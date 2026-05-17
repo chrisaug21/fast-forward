@@ -1,6 +1,7 @@
 const STREAMING_API_URL =
   "https://streaming-availability.p.rapidapi.com/shows/search/filters";
 const MAX_PAGES = 5;
+const TIMEOUT_MS = 10000;
 const ALLOWED_GENRES = [
   "action",
   "adventure",
@@ -100,13 +101,32 @@ export async function handler(event) {
 
   try {
     for (let page = 0; page < MAX_PAGES; page += 1) {
-      const response = await fetch(getRequestUrl(service, type, cursor), {
-        method: "GET",
-        headers: {
-          "X-RapidAPI-Key": RAPIDAPI_KEY,
-          "X-RapidAPI-Host": "streaming-availability.p.rapidapi.com",
-        },
-      });
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => {
+        controller.abort();
+      }, TIMEOUT_MS);
+      let response;
+
+      try {
+        response = await fetch(getRequestUrl(service, type, cursor), {
+          method: "GET",
+          headers: {
+            "X-RapidAPI-Key": RAPIDAPI_KEY,
+            "X-RapidAPI-Host": "streaming-availability.p.rapidapi.com",
+          },
+          signal: controller.signal,
+        });
+      } catch (error) {
+        clearTimeout(timeoutId);
+
+        if (error instanceof Error && error.name === "AbortError") {
+          break;
+        }
+
+        throw error;
+      }
+
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         const errorText = await response.text();
