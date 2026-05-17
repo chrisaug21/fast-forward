@@ -27,7 +27,7 @@ export default function DataSection({
 
   return (
     <SettingsCard title="Data">
-      <div style={{ fontSize: 11, color: "#555", lineHeight: 1.8 }}>
+      <div className="ff-helper-text" style={{ lineHeight: 1.8 }}>
         All data stored locally in this browser.
         <br />
         Streaming cache: {streamingCacheAge || "not fetched"}
@@ -38,15 +38,7 @@ export default function DataSection({
       </div>
       <button
         onClick={clearAllData}
-        style={{
-          marginTop: 12,
-          background: "transparent",
-          border: "1px solid #3a1a1a",
-          color: "#6a3030",
-          padding: "6px 14px",
-          borderRadius: 3,
-          fontSize: 11,
-        }}
+        className="ff-button-danger"
       >
         Clear All Data
       </button>

@@ -19,19 +19,9 @@ export default function Settings({
 }) {
   return (
     <div style={{ maxWidth: 520 }}>
-      <div
-        style={{
-          fontSize: 11,
-          letterSpacing: "0.2em",
-          color: "#555",
-          textTransform: "uppercase",
-          marginBottom: 20,
-        }}
-      >
-        Settings
-      </div>
+      <div className="ff-page-kicker ff-page-kicker--spaced">Settings</div>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+      <div className="ff-section-stack">
         <PlexConnectionSection
           plexUrl={plexUrl}
           plexToken={plexToken}
