@@ -4,6 +4,7 @@ import Settings from "./components/Settings";
 import Watchlist from "./components/Watchlist";
 import { useCatalog } from "./hooks/useCatalog";
 import { useWatchlist } from "./hooks/useWatchlist";
+import { APP_VERSION } from "./utils/constants";
 
 export default function App() {
   const [screen, setScreen] = useState("home");
@@ -144,26 +145,40 @@ export default function App() {
           </div>
         </div>
 
-        <nav style={{ display: "flex", gap: 6 }}>
-          {navigationItems.map(([id, label]) => (
-            <button
-              key={id}
-              onClick={() => setScreen(id)}
-              style={{
-                background: screen === id ? "#1e1e2a" : "transparent",
-                border: `1px solid ${screen === id ? "#333" : "transparent"}`,
-                color: screen === id ? "#e8e4dc" : "#666",
-                padding: "6px 14px",
-                borderRadius: 3,
-                fontSize: 12,
-                letterSpacing: "0.08em",
-                transition: "all 0.15s",
-              }}
-            >
-              {label}
-            </button>
-          ))}
-        </nav>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 8 }}>
+          <div
+            style={{
+              fontSize: 10,
+              letterSpacing: "0.14em",
+              color: "#4d4d58",
+              fontFamily: "monospace",
+              textTransform: "uppercase",
+            }}
+          >
+            v{APP_VERSION}
+          </div>
+
+          <nav style={{ display: "flex", gap: 6 }}>
+            {navigationItems.map(([id, label]) => (
+              <button
+                key={id}
+                onClick={() => setScreen(id)}
+                style={{
+                  background: screen === id ? "#1e1e2a" : "transparent",
+                  border: `1px solid ${screen === id ? "#333" : "transparent"}`,
+                  color: screen === id ? "#e8e4dc" : "#666",
+                  padding: "6px 14px",
+                  borderRadius: 3,
+                  fontSize: 12,
+                  letterSpacing: "0.08em",
+                  transition: "all 0.15s",
+                }}
+              >
+                {label}
+              </button>
+            ))}
+          </nav>
+        </div>
       </header>
 
       <main
@@ -180,11 +195,11 @@ export default function App() {
             catalog={catalogState.catalog}
             watchlist={watchlistState.watchlist}
             watched={watchlistState.watched}
-            jwStatus={catalogState.jwStatus}
+            streamingStatus={catalogState.streamingStatus}
             plexStatus={catalogState.plexStatus}
-            onLoadJustWatch={catalogState.loadJustWatch}
+            onLoadStreamingCatalog={catalogState.loadStreamingCatalog}
             onLoadPlex={catalogState.loadPlex}
-            justWatchCacheAge={catalogState.getJustWatchCacheAge()}
+            streamingCacheAge={catalogState.getStreamingCacheAge()}
             onAddToWatchlist={watchlistState.addToWatchlist}
             onMarkWatched={watchlistState.markWatched}
             onNotify={notify}
@@ -208,7 +223,7 @@ export default function App() {
             onPlexUrlChange={catalogState.setPlexUrl}
             onPlexTokenChange={catalogState.setPlexToken}
             onExcludedLibrariesChange={catalogState.setExcludedLibraries}
-            justWatchCacheAge={catalogState.getJustWatchCacheAge()}
+            streamingCacheAge={catalogState.getStreamingCacheAge()}
             watchlistCount={watchlistState.watchlist.length}
             watchedCount={watchlistState.watched.length}
             onClearWatchData={watchlistState.clearWatchData}

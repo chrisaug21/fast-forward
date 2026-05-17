@@ -1,10 +1,10 @@
 export default function StatusBar({
   catalog,
-  jwStatus,
+  streamingStatus,
   plexStatus,
-  onLoadJustWatch,
+  onLoadStreamingCatalog,
   onLoadPlex,
-  justWatchCacheAge,
+  streamingCacheAge,
 }) {
   const plexCount = catalog.filter((item) => item.source === "plex").length;
 
@@ -37,29 +37,29 @@ export default function StatusBar({
           </div>
           <div style={{ fontSize: 13, color: "#aaa" }}>
             Max · Apple TV+
-            {justWatchCacheAge && (
+            {streamingCacheAge && (
               <span style={{ color: "#555", marginLeft: 8, fontSize: 11 }}>
-                ({justWatchCacheAge})
+                ({streamingCacheAge})
               </span>
             )}
           </div>
         </div>
         <button
-          onClick={onLoadJustWatch}
-          disabled={jwStatus === "loading"}
+          onClick={onLoadStreamingCatalog}
+          disabled={streamingStatus === "loading"}
           style={{
             background: "#1a1a28",
             border: "1px solid #2a2a3a",
-            color: jwStatus === "loading" ? "#555" : "#9090c0",
+            color: streamingStatus === "loading" ? "#555" : "#9090c0",
             padding: "5px 12px",
             borderRadius: 3,
             fontSize: 11,
             letterSpacing: "0.1em",
           }}
         >
-          {jwStatus === "loading"
+          {streamingStatus === "loading"
             ? "···"
-            : jwStatus === "ok"
+            : streamingStatus === "ok"
               ? "↻ Refresh"
               : "↓ Fetch"}
         </button>

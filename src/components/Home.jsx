@@ -16,11 +16,11 @@ export default function Home({
   catalog,
   watchlist,
   watched,
-  jwStatus,
+  streamingStatus,
   plexStatus,
-  onLoadJustWatch,
+  onLoadStreamingCatalog,
   onLoadPlex,
-  justWatchCacheAge,
+  streamingCacheAge,
   onAddToWatchlist,
   onMarkWatched,
   onNotify,
@@ -52,11 +52,11 @@ export default function Home({
     <div>
       <StatusBar
         catalog={catalog}
-        jwStatus={jwStatus}
+        streamingStatus={streamingStatus}
         plexStatus={plexStatus}
-        onLoadJustWatch={onLoadJustWatch}
+        onLoadStreamingCatalog={onLoadStreamingCatalog}
         onLoadPlex={onLoadPlex}
-        justWatchCacheAge={justWatchCacheAge}
+        streamingCacheAge={streamingCacheAge}
       />
 
       <div

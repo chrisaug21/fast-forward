@@ -92,7 +92,8 @@ src/
 - Never reference JustWatch, Supabase, or Anthropic in user-facing errors
 - Never log or expose the Plex token
 - Never hardcode colors — CSS custom properties only
-- VERSION bump mandatory on every PR — lives in `src/utils/constants.js` as `APP_VERSION`
+- VERSION bump mandatory before every single push, no matter how small. No exceptions — lives in `src/utils/constants.js` as `APP_VERSION`, and `package.json` must match it
+- Never push first and bump later. Ever — the pushed build must always display the latest version for testing
 - No single file over 300 lines
 
 ## Phase 1.5 (Supabase — not yet)

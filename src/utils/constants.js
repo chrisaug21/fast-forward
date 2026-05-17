@@ -1,4 +1,4 @@
-export const APP_VERSION = "0.0.1";
+export const APP_VERSION = "0.1.0";
 
 export const STORAGE_KEYS = {
   plexToken: "wtw_plex_token",
@@ -24,6 +24,6 @@ export const DEFAULT_EXCLUDED_LIBRARIES = [
 ];
 
 export const STREAMING_SERVICES = [
-  { id: "hbo", jwId: "max", label: "Max (HBO)" },
-  { id: "apple", jwId: "atp", label: "Apple TV+" },
+  { id: "hbo", jwId: "hbo", label: "Max (HBO)" },
+  { id: "apple", jwId: "apple", label: "Apple TV+" },
 ];
