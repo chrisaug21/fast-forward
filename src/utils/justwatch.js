@@ -1,7 +1,6 @@
 import { STREAMING_SERVICES } from "./constants";
 
 export async function fetchJustWatch(retries = 3) {
-  const corsProxy = "https://corsproxy.io/?";
   const services = STREAMING_SERVICES.map((service) => service.jwId);
 
   const query = `
@@ -35,7 +34,7 @@ export async function fetchJustWatch(retries = 3) {
     }
   `;
 
-  const url = `${corsProxy}https://apis.justwatch.com/graphql`;
+  const url = "/.netlify/functions/justwatch";
 
   for (let attempt = 0; attempt < retries; attempt += 1) {
     try {
