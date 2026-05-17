@@ -73,31 +73,44 @@ async function fetchStreamingBatch(service, type, retries = 3) {
 
 export default async function fetchStreamingCatalog() {
   const combinedShows = new Map();
+  let failedRequests = 0;
 
   for (let index = 0; index < REQUESTS.length; index += 1) {
     const request = REQUESTS[index];
     const serviceLabel = getServiceLabel(request.service);
-    const shows = await fetchStreamingBatch(request.service, request.type);
+    try {
+      const shows = await fetchStreamingBatch(request.service, request.type);
 
-    shows.forEach((show) => {
-      const dedupeKey =
-        show.tmdbId ??
-        `${request.service}:${request.type}:${show.title}:${show.releaseYear || show.firstAirYear || "unknown"}`;
+      shows.forEach((show) => {
+        const dedupeKey =
+          show.tmdbId ??
+          `${request.service}:${request.type}:${show.title}:${show.releaseYear || show.firstAirYear || "unknown"}`;
 
-      if (!combinedShows.has(dedupeKey)) {
-        combinedShows.set(dedupeKey, {
-          show,
-          streamingOn: new Set([serviceLabel]),
-        });
-        return;
-      }
+        if (!combinedShows.has(dedupeKey)) {
+          combinedShows.set(dedupeKey, {
+            show,
+            streamingOn: new Set([serviceLabel]),
+          });
+          return;
+        }
 
-      combinedShows.get(dedupeKey).streamingOn.add(serviceLabel);
-    });
+        combinedShows.get(dedupeKey).streamingOn.add(serviceLabel);
+      });
+    } catch (error) {
+      failedRequests += 1;
+      console.error(
+        `Streaming catalog batch failed for ${request.service} ${request.type}`,
+        error
+      );
+    }
 
     if (index < REQUESTS.length - 1) {
       await sleep(REQUEST_DELAY_MS);
     }
+  }
+
+  if (combinedShows.size === 0 && failedRequests === REQUESTS.length) {
+    throw new Error("Streaming catalog request failed for all services");
   }
 
   return Array.from(combinedShows.values()).map(({ show, streamingOn }) => ({
