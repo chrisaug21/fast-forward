@@ -1,0 +1,20 @@
+:root {
+  --ff-bg-base: #0f0f1a;
+  --ff-bg-surface: #17172a;
+  --ff-bg-surface-hover: #1e1e35;
+  --ff-border: #252540;
+  --ff-text-primary: #d8d8e8;
+  --ff-text-secondary: #44445a;
+  --ff-coral: #FF4D6D;
+  --ff-coral-dim: #1f0d12;
+  --ff-teal: #00C2C2;
+  --ff-teal-dim: #001f1f;
+  --ff-error: var(--ff-coral);
+  --ff-error-dim: var(--ff-coral-dim);
+  --ff-success: var(--ff-teal);
+  --ff-success-dim: var(--ff-teal-dim);
+  --ff-info: var(--ff-text-primary);
+  --ff-info-dim: var(--ff-bg-surface-hover);
+  --ff-font-display: "Bebas Neue", sans-serif;
+  --ff-font-ui: "Space Grotesk", sans-serif;
+}

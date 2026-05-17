@@ -6,141 +6,74 @@ export default function StatusBar({
   onLoadPlex,
   streamingCacheAge,
 }) {
+  const streamingCount = catalog.filter((item) => item.source === "streaming").length;
   const plexCount = catalog.filter((item) => item.source === "plex").length;
+  const streamingServices = [
+    ...new Set(
+      catalog
+        .filter((item) => item.source === "streaming")
+        .flatMap((item) =>
+          Array.isArray(item.streamingOn)
+            ? item.streamingOn
+            : item.streamingOn
+              ? [item.streamingOn]
+              : []
+        )
+        .filter(Boolean)
+    ),
+  ];
+  const streamingServicesLabel =
+    streamingServices.length > 0 ? streamingServices.join(" · ") : "not loaded yet";
 
   return (
-    <div style={{ display: "flex", gap: 10, marginBottom: 24, flexWrap: "wrap" }}>
-      <div
-        style={{
-          flex: 1,
-          minWidth: 200,
-          background: "#0f0f18",
-          border: "1px solid #1e1e2a",
-          borderRadius: 4,
-          padding: "12px 16px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-        }}
-      >
-        <div>
-          <div
-            style={{
-              fontSize: 10,
-              letterSpacing: "0.2em",
-              color: "#555",
-              textTransform: "uppercase",
-              marginBottom: 4,
-            }}
-          >
-            Streaming
-          </div>
-          <div style={{ fontSize: 13, color: "#aaa" }}>
-            Max · Apple TV+
-            {streamingCacheAge && (
-              <span style={{ color: "#555", marginLeft: 8, fontSize: 11 }}>
-                ({streamingCacheAge})
-              </span>
-            )}
-          </div>
+    <div className="ff-status-grid">
+      <div className="ff-status-card">
+        <div className="ff-status-label">Streaming</div>
+        <div className="ff-status-value">{streamingCount}</div>
+        <div className="ff-status-subtext">
+          {streamingServicesLabel}
+          {streamingCacheAge ? ` · ${streamingCacheAge}` : ""}
         </div>
-        <button
-          onClick={onLoadStreamingCatalog}
-          disabled={streamingStatus === "loading"}
-          style={{
-            background: "#1a1a28",
-            border: "1px solid #2a2a3a",
-            color: streamingStatus === "loading" ? "#555" : "#9090c0",
-            padding: "5px 12px",
-            borderRadius: 3,
-            fontSize: 11,
-            letterSpacing: "0.1em",
-          }}
-        >
-          {streamingStatus === "loading"
-            ? "···"
-            : streamingStatus === "ok"
-              ? "↻ Refresh"
-              : "↓ Fetch"}
-        </button>
+        <div className="ff-status-action">
+          <button
+            onClick={onLoadStreamingCatalog}
+            disabled={streamingStatus === "loading"}
+            className="ff-button-secondary"
+          >
+            {streamingStatus === "loading"
+              ? "Loading"
+              : streamingStatus === "ok"
+                ? "Refresh"
+                : "Fetch"}
+          </button>
+        </div>
       </div>
 
-      <div
-        style={{
-          flex: 1,
-          minWidth: 200,
-          background: "#0f0f18",
-          border: "1px solid #1e1e2a",
-          borderRadius: 4,
-          padding: "12px 16px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-        }}
-      >
-        <div>
-          <div
-            style={{
-              fontSize: 10,
-              letterSpacing: "0.2em",
-              color: "#555",
-              textTransform: "uppercase",
-              marginBottom: 4,
-            }}
-          >
-            Plex Library
-          </div>
-          <div style={{ fontSize: 13, color: "#aaa" }}>
-            {plexCount > 0 ? `${plexCount} titles` : "Not loaded"}
-          </div>
+      <div className="ff-status-card">
+        <div className="ff-status-label">Plex Library</div>
+        <div className="ff-status-value">{plexCount}</div>
+        <div className="ff-status-subtext">
+          {plexCount > 0 ? "movies & shows" : "not loaded yet"}
         </div>
-        <button
-          onClick={onLoadPlex}
-          disabled={plexStatus === "loading"}
-          style={{
-            background: "#1a1a28",
-            border: "1px solid #2a2a3a",
-            color: plexStatus === "loading" ? "#555" : "#c09060",
-            padding: "5px 12px",
-            borderRadius: 3,
-            fontSize: 11,
-            letterSpacing: "0.1em",
-          }}
-        >
-          {plexStatus === "loading"
-            ? "···"
-            : plexStatus === "ok"
-              ? "↻ Refresh"
-              : "↓ Connect"}
-        </button>
+        <div className="ff-status-action">
+          <button
+            onClick={onLoadPlex}
+            disabled={plexStatus === "loading"}
+            className="ff-button-secondary"
+          >
+            {plexStatus === "loading"
+              ? "Loading"
+              : plexStatus === "ok"
+                ? "Refresh"
+                : "Connect"}
+          </button>
+        </div>
       </div>
 
-      <div
-        style={{
-          background: "#0f0f18",
-          border: "1px solid #1e1e2a",
-          borderRadius: 4,
-          padding: "12px 16px",
-          display: "flex",
-          alignItems: "center",
-        }}
-      >
-        <div>
-          <div
-            style={{
-              fontSize: 10,
-              letterSpacing: "0.2em",
-              color: "#555",
-              textTransform: "uppercase",
-              marginBottom: 4,
-            }}
-          >
-            Total
-          </div>
-          <div style={{ fontSize: 20, color: "#e8e4dc", fontStyle: "italic" }}>
-            {catalog.length}
-          </div>
-        </div>
+      <div className="ff-status-card">
+        <div className="ff-status-label">Total Titles</div>
+        <div className="ff-status-value">{catalog.length}</div>
+        <div className="ff-status-subtext">movies & shows</div>
       </div>
     </div>
   );
