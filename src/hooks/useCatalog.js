@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   DEFAULT_EXCLUDED_LIBRARIES,
   SEVEN_DAYS_MS,
@@ -21,6 +21,12 @@ export function useCatalog(notify) {
   const [catalog, setCatalog] = useState([]);
   const [jwStatus, setJwStatus] = useState("idle");
   const [plexStatus, setPlexStatus] = useState("idle");
+  const notifyRef = useRef(notify);
+  const isFetchingJustWatchRef = useRef(false);
+
+  useEffect(() => {
+    notifyRef.current = notify;
+  }, [notify]);
 
   const setPlexToken = useCallback((value) => {
     setPlexTokenState(value);
@@ -38,6 +44,11 @@ export function useCatalog(notify) {
   }, []);
 
   const loadJustWatch = useCallback(async () => {
+    if (isFetchingJustWatchRef.current) {
+      return;
+    }
+
+    isFetchingJustWatchRef.current = true;
     setJwStatus("loading");
 
     try {
@@ -49,16 +60,18 @@ export function useCatalog(notify) {
         return [...results, ...plexItems];
       });
       setJwStatus("ok");
-      notify(`Loaded ${results.length} streaming titles`, "success");
+      notifyRef.current(`Loaded ${results.length} streaming titles`, "success");
     } catch {
       setJwStatus("error");
-      notify("JustWatch fetch failed. Using cache if available.", "error");
+      notifyRef.current("JustWatch fetch failed. Using cache if available.", "error");
+    } finally {
+      isFetchingJustWatchRef.current = false;
     }
-  }, [notify]);
+  }, []);
 
   const loadPlex = useCallback(async () => {
     if (!plexToken || !plexUrl) {
-      notify("Add your Plex URL and token in Settings first", "error");
+      notifyRef.current("Add your Plex URL and token in Settings first", "error");
       return;
     }
 
@@ -78,12 +91,12 @@ export function useCatalog(notify) {
         return [...streamingItems, ...results];
       });
       setPlexStatus("ok");
-      notify(`Loaded ${results.length} titles from Plex`, "success");
+      notifyRef.current(`Loaded ${results.length} titles from Plex`, "success");
     } catch (error) {
       setPlexStatus("error");
-      notify(error.message || "Plex connection failed", "error");
+      notifyRef.current(error.message || "Plex connection failed", "error");
     }
-  }, [excludedLibraries, notify, plexToken, plexUrl]);
+  }, [excludedLibraries, plexToken, plexUrl]);
 
   const getJustWatchCacheAge = useCallback(() => {
     const timestamp = readStorage(STORAGE_KEYS.justWatchCacheTimestamp, 0);
