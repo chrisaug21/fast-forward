@@ -70,10 +70,11 @@
 .ff-wordmark {
   display: flex;
   align-items: baseline;
-  gap: 8px;
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 26px;
-  letter-spacing: 2px;
+  gap: 0;
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  font-size: 32px;
+  letter-spacing: 1px;
   line-height: 1;
 }
 
@@ -161,7 +162,10 @@
 }
 
 .ff-status-value {
-  font: 400 28px/1 var(--ff-font-display);
+  font-family: 'Oswald', sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1;
   letter-spacing: 0.8px;
   color: var(--ff-text-primary);
 }
