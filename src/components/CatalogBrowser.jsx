@@ -236,7 +236,7 @@ export default function CatalogBrowser({ catalog, onAddToWatchlist }) {
             </div>
           )}
 
-          {availableGenres.length > 0 ? (
+          {availableGenres.length > 0 && (
             <div className="ff-chip-row">
               <button
                 onClick={() => setSelectedGenre("all")}
@@ -255,9 +255,6 @@ export default function CatalogBrowser({ catalog, onAddToWatchlist }) {
                 </button>
               ))}
             </div>
-          ) : (
-            // TODO: Add genre pills if catalog items gain genre data in a future API update.
-            <></>
           )}
         </div>
 
