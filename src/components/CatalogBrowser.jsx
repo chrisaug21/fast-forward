@@ -91,7 +91,7 @@ export default function CatalogBrowser({ catalog, onAddToWatchlist }) {
               {item.title}
             </div>
             <div style={{ fontSize: 10, color: "#555" }}>
-              {item.releaseYear} · {item.streamingOn[0]}
+              {item.releaseYear} · {item.streamingOn?.[0] || "Unknown"}
             </div>
             {item.imdbScore && (
               <div style={{ fontSize: 10, color: "#666", marginTop: 2 }}>

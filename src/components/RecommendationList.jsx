@@ -35,10 +35,19 @@ export default function RecommendationList({
       )}
       <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
         {(recommendations.recommendations || []).map((recommendation, index) => {
-          const item = catalog.find(
-            (catalogItem) =>
-              catalogItem.title.toLowerCase() === recommendation.title.toLowerCase()
-          );
+          const recommendationTitle =
+            typeof recommendation?.title === "string" ? recommendation.title : null;
+          const item = recommendationTitle
+            ? catalog.find((catalogItem) => {
+                if (typeof catalogItem?.title !== "string") {
+                  return false;
+                }
+
+                return (
+                  catalogItem.title.toLowerCase() === recommendationTitle.toLowerCase()
+                );
+              })
+            : null;
 
           return (
             <div

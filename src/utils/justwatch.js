@@ -50,6 +50,9 @@ export async function fetchJustWatch(retries = 3) {
       }
 
       const data = await response.json();
+      if (Array.isArray(data?.errors) && data.errors.length > 0) {
+        throw new Error(`GraphQL errors: ${JSON.stringify(data.errors)}`);
+      }
       const edges = data?.data?.popularTitles?.edges || [];
 
       return edges

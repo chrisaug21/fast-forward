@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Home from "./components/Home";
 import Settings from "./components/Settings";
 import Watchlist from "./components/Watchlist";
@@ -8,11 +8,27 @@ import { useWatchlist } from "./hooks/useWatchlist";
 export default function App() {
   const [screen, setScreen] = useState("home");
   const [notification, setNotification] = useState(null);
+  const timerRef = useRef(null);
 
   function notify(message, type = "info") {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+    }
+
     setNotification({ msg: message, type });
-    setTimeout(() => setNotification(null), 3000);
+    timerRef.current = setTimeout(() => {
+      setNotification(null);
+      timerRef.current = null;
+    }, 3000);
   }
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+    };
+  }, []);
 
   const catalogState = useCatalog(notify);
   const watchlistState = useWatchlist(notify);

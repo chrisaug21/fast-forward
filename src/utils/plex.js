@@ -8,10 +8,7 @@ export async function fetchPlexLibrary(
   const baseUrl = plexUrl.replace(/\/$/, "");
   const headers = { "X-Plex-Token": plexToken, Accept: "application/json" };
 
-  const librariesResponse = await fetch(
-    `${baseUrl}/library/sections?X-Plex-Token=${plexToken}`,
-    { headers }
-  );
+  const librariesResponse = await fetch(`${baseUrl}/library/sections`, { headers });
 
   if (!librariesResponse.ok) {
     throw new Error("Cannot reach Plex. Are you on your local network?");
@@ -30,10 +27,9 @@ export async function fetchPlexLibrary(
   const allItems = [];
 
   for (const section of mediaSections) {
-    const response = await fetch(
-      `${baseUrl}/library/sections/${section.key}/all?X-Plex-Token=${plexToken}`,
-      { headers }
-    );
+    const response = await fetch(`${baseUrl}/library/sections/${section.key}/all`, {
+      headers,
+    });
 
     if (!response.ok) {
       continue;
@@ -52,9 +48,7 @@ export async function fetchPlexLibrary(
         imdbScore: item.rating,
         releaseYear: item.year,
         description: item.summary || "",
-        posterUrl: item.thumb
-          ? `${baseUrl}${item.thumb}?X-Plex-Token=${plexToken}`
-          : null,
+        posterUrl: item.thumb ? `${baseUrl}${item.thumb}` : null,
         streamingOn: ["Plex (Local)"],
         source: "plex",
       });

@@ -7,18 +7,36 @@ export default function ExcludedLibrariesSection({
 }) {
   const [excludedInput, setExcludedInput] = useState("");
 
+  function normalizeLibraryName(value) {
+    return value.trim().toLowerCase();
+  }
+
   function addExcludedLibrary() {
-    if (!excludedInput.trim()) {
+    const normalizedInput = normalizeLibraryName(excludedInput);
+
+    if (!normalizedInput) {
       return;
     }
 
-    const updated = [...excludedLibraries, excludedInput.trim()];
+    const existingLibraries = new Set(
+      excludedLibraries.map((library) => normalizeLibraryName(library))
+    );
+
+    if (existingLibraries.has(normalizedInput)) {
+      setExcludedInput("");
+      return;
+    }
+
+    const updated = [...excludedLibraries, normalizedInput];
     onExcludedLibrariesChange(updated);
     setExcludedInput("");
   }
 
   function removeExcludedLibrary(libraryName) {
-    const updated = excludedLibraries.filter((library) => library !== libraryName);
+    const normalizedLibraryName = normalizeLibraryName(libraryName);
+    const updated = excludedLibraries.filter(
+      (library) => normalizeLibraryName(library) !== normalizedLibraryName
+    );
     onExcludedLibrariesChange(updated);
   }
 
@@ -29,9 +47,12 @@ export default function ExcludedLibrariesSection({
         Case-insensitive. Add any library you don't want in recommendations.
       </div>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 12 }}>
-        {excludedLibraries.map((library) => (
+        {excludedLibraries.map((library) => {
+          const normalizedLibrary = normalizeLibraryName(library);
+
+          return (
           <div
-            key={library}
+            key={normalizedLibrary}
             style={{
               background: "#1a1218",
               border: "1px solid #2a1a20",
@@ -59,7 +80,8 @@ export default function ExcludedLibrariesSection({
               ×
             </button>
           </div>
-        ))}
+          );
+        })}
       </div>
       <div style={{ display: "flex", gap: 8 }}>
         <input
