@@ -8,6 +8,24 @@ import fetchStreamingCatalog from "../utils/streaming";
 import { fetchPlexLibrary } from "../utils/plex";
 import { readStorage, removeStorage, writeStorage } from "../utils/storage";
 
+function getInitialCatalogState() {
+  const justWatchCache = readStorage(STORAGE_KEYS.justWatchCache, []);
+  const plexCache = readStorage(STORAGE_KEYS.plexCache, []);
+
+  return [...justWatchCache, ...plexCache];
+}
+
+function getInitialStreamingStatus() {
+  const justWatchCache = readStorage(STORAGE_KEYS.justWatchCache, []);
+  const justWatchTimestamp = readStorage(STORAGE_KEYS.justWatchCacheTimestamp, 0);
+
+  if (justWatchCache.length === 0) {
+    return "idle";
+  }
+
+  return Date.now() - justWatchTimestamp > SEVEN_DAYS_MS ? "idle" : "cached";
+}
+
 export function useCatalog(notify) {
   const [plexToken, setPlexTokenState] = useState(() =>
     readStorage(STORAGE_KEYS.plexToken, "")
@@ -18,8 +36,8 @@ export function useCatalog(notify) {
   const [excludedLibraries, setExcludedLibrariesState] = useState(() =>
     readStorage(STORAGE_KEYS.plexExcluded, DEFAULT_EXCLUDED_LIBRARIES)
   );
-  const [catalog, setCatalog] = useState([]);
-  const [jwStatus, setJwStatus] = useState("idle");
+  const [catalog, setCatalog] = useState(getInitialCatalogState);
+  const [jwStatus, setJwStatus] = useState(getInitialStreamingStatus);
   const [plexStatus, setPlexStatus] = useState("idle");
   const notifyRef = useRef(notify);
   const isFetchingJustWatchRef = useRef(false);
@@ -120,23 +138,18 @@ export function useCatalog(notify) {
 
   useEffect(() => {
     const justWatchCache = readStorage(STORAGE_KEYS.justWatchCache, []);
-    const plexCache = readStorage(STORAGE_KEYS.plexCache, []);
-    const justWatchTimestamp = readStorage(
-      STORAGE_KEYS.justWatchCacheTimestamp,
-      0
-    );
-    const combined = [...justWatchCache, ...plexCache];
-
-    if (combined.length > 0) {
-      setCatalog(combined);
-    }
+    const justWatchTimestamp = readStorage(STORAGE_KEYS.justWatchCacheTimestamp, 0);
 
     const isStale = Date.now() - justWatchTimestamp > SEVEN_DAYS_MS;
 
     if (isStale && justWatchCache.length === 0) {
-      loadJustWatch();
-    } else if (justWatchCache.length > 0) {
-      setJwStatus(isStale ? "idle" : "cached");
+      const timeoutId = setTimeout(() => {
+        loadJustWatch();
+      }, 0);
+
+      return () => {
+        clearTimeout(timeoutId);
+      };
     }
   }, [loadJustWatch]);
 
