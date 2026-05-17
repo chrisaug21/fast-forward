@@ -4,7 +4,7 @@ import {
   SEVEN_DAYS_MS,
   STORAGE_KEYS,
 } from "../utils/constants";
-import { fetchJustWatch } from "../utils/justwatch";
+import fetchStreamingCatalog from "../utils/streaming";
 import { fetchPlexLibrary } from "../utils/plex";
 import { readStorage, removeStorage, writeStorage } from "../utils/storage";
 
@@ -52,7 +52,7 @@ export function useCatalog(notify) {
     setJwStatus("loading");
 
     try {
-      const results = await fetchJustWatch();
+      const results = await fetchStreamingCatalog();
       writeStorage(STORAGE_KEYS.justWatchCache, results);
       writeStorage(STORAGE_KEYS.justWatchCacheTimestamp, Date.now());
       setCatalog((previousCatalog) => {
