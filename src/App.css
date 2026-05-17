@@ -260,6 +260,11 @@
   transform: translateY(-1px);
 }
 
+.ff-loading-pulse {
+  display: inline-block;
+  animation: pulse 1s infinite;
+}
+
 .ff-button-primary:disabled {
   transform: none;
   filter: none;
@@ -527,6 +532,10 @@
   margin-bottom: 20px;
 }
 
+.ff-watched-section {
+  margin-top: 32px;
+}
+
 .ff-empty-state {
   color: var(--ff-text-secondary);
   font: italic 400 14px/1.5 var(--ff-font-ui);
@@ -600,6 +609,10 @@
   gap: 20px;
 }
 
+.ff-settings-container {
+  max-width: 520px;
+}
+
 .ff-settings-card {
   padding: 20px;
   background: var(--ff-bg-surface);
@@ -635,13 +648,21 @@
 
 .ff-helper-text {
   color: var(--ff-text-secondary);
-  font: 400 11px/1.6 var(--ff-font-ui);
+  font: 400 11px/1.8 var(--ff-font-ui);
+}
+
+.ff-helper-text--spaced {
+  margin-bottom: 12px;
 }
 
 .ff-wrap-row {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+}
+
+.ff-wrap-row--spaced {
+  margin-bottom: 12px;
 }
 
 .ff-wrap-row--wide {
@@ -674,6 +695,10 @@
   gap: 8px;
 }
 
+.ff-control-row .ff-input {
+  flex: 1;
+}
+
 .ff-badge-neutral {
   padding: 6px 14px;
   background: var(--ff-bg-surface-hover);
@@ -681,6 +706,10 @@
   border-radius: 8px;
   color: var(--ff-text-secondary);
   font: 500 12px/1.2 var(--ff-font-ui);
+}
+
+.ff-streaming-note {
+  margin-top: 10px;
 }
 
 .ff-button-danger {

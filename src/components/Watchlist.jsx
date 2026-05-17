@@ -42,7 +42,7 @@ export default function Watchlist({
       )}
 
       {watched.length > 0 && (
-        <div style={{ marginTop: 32 }}>
+        <div className="ff-watched-section">
           <div className="ff-page-kicker">
             Watched History · {watched.length}
           </div>

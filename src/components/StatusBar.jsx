@@ -8,6 +8,22 @@ export default function StatusBar({
 }) {
   const streamingCount = catalog.filter((item) => item.source === "streaming").length;
   const plexCount = catalog.filter((item) => item.source === "plex").length;
+  const streamingServices = [
+    ...new Set(
+      catalog
+        .filter((item) => item.source === "streaming")
+        .flatMap((item) =>
+          Array.isArray(item.streamingOn)
+            ? item.streamingOn
+            : item.streamingOn
+              ? [item.streamingOn]
+              : []
+        )
+        .filter(Boolean)
+    ),
+  ];
+  const streamingServicesLabel =
+    streamingServices.length > 0 ? streamingServices.join(" · ") : "not loaded yet";
 
   return (
     <div className="ff-status-grid">
@@ -15,7 +31,7 @@ export default function StatusBar({
         <div className="ff-status-label">Streaming</div>
         <div className="ff-status-value">{streamingCount}</div>
         <div className="ff-status-subtext">
-          Max · Apple TV+
+          {streamingServicesLabel}
           {streamingCacheAge ? ` · ${streamingCacheAge}` : ""}
         </div>
         <div className="ff-status-action">

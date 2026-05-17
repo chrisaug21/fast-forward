@@ -18,7 +18,7 @@ export default function Settings({
   onNotify,
 }) {
   return (
-    <div style={{ maxWidth: 520 }}>
+    <div className="ff-settings-container">
       <div className="ff-page-kicker ff-page-kicker--spaced">Settings</div>
 
       <div className="ff-section-stack">

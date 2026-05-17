@@ -79,9 +79,7 @@ export default function Home({
             className="ff-button-primary"
           >
             {recLoading ? (
-              <span style={{ animation: "pulse 1s infinite", display: "inline-block" }}>
-                thinking…
-              </span>
+              <span className="ff-loading-pulse">thinking…</span>
             ) : (
               "Recommend"
             )}

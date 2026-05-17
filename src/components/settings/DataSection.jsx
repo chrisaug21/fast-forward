@@ -27,7 +27,7 @@ export default function DataSection({
 
   return (
     <SettingsCard title="Data">
-      <div className="ff-helper-text" style={{ lineHeight: 1.8 }}>
+      <div className="ff-helper-text">
         All data stored locally in this browser.
         <br />
         Streaming cache: {streamingCacheAge || "not fetched"}

@@ -2,12 +2,21 @@ import { useState } from "react";
 
 export default function CatalogBrowser({ catalog, onAddToWatchlist }) {
   const [activeTab, setActiveTab] = useState("all");
+  const [query, setQuery] = useState("");
 
   if (catalog.length === 0) {
     return null;
   }
 
   const filteredCatalog = catalog.filter((item) => {
+    const matchesQuery =
+      typeof item.title === "string" &&
+      item.title.toLowerCase().includes(query.trim().toLowerCase());
+
+    if (!matchesQuery) {
+      return false;
+    }
+
     if (activeTab === "streaming") {
       return item.source === "streaming";
     }
@@ -48,6 +57,8 @@ export default function CatalogBrowser({ catalog, onAddToWatchlist }) {
           className="ff-input ff-catalog-search"
           placeholder="Search catalog"
           aria-label="Search catalog"
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
         />
       </div>
 

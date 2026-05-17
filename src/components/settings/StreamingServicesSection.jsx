@@ -11,7 +11,7 @@ export default function StreamingServicesSection() {
           </div>
         ))}
       </div>
-      <div className="ff-helper-text" style={{ marginTop: 10 }}>
+      <div className="ff-helper-text ff-streaming-note">
         Hardcoded to your services. Fetched from the streaming catalog weekly.
       </div>
     </SettingsCard>

@@ -42,11 +42,11 @@ export default function ExcludedLibrariesSection({
 
   return (
     <SettingsCard title="Excluded Plex Libraries">
-      <div className="ff-helper-text" style={{ marginBottom: 12 }}>
+      <div className="ff-helper-text ff-helper-text--spaced">
         These library names will be skipped when connecting to Plex.
         Case-insensitive. Add any library you don't want in recommendations.
       </div>
-      <div className="ff-wrap-row" style={{ marginBottom: 12 }}>
+      <div className="ff-wrap-row ff-wrap-row--spaced">
         {excludedLibraries.map((library) => {
           const normalizedLibrary = normalizeLibraryName(library);
 
@@ -74,7 +74,6 @@ export default function ExcludedLibrariesSection({
           }}
           placeholder="Library name to exclude…"
           className="ff-input ff-input--mono"
-          style={{ flex: 1 }}
         />
         <button
           onClick={addExcludedLibrary}
