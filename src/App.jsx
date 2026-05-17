@@ -5,6 +5,7 @@ import Settings from "./components/Settings";
 import Watchlist from "./components/Watchlist";
 import { useCatalog } from "./hooks/useCatalog";
 import { useWatchlist } from "./hooks/useWatchlist";
+import { APP_VERSION } from "./utils/constants";
 
 export default function App() {
   const [screen, setScreen] = useState("home");
@@ -64,6 +65,7 @@ export default function App() {
             <span className="ff-wordmark__fast">FAST</span>
             <span className="ff-wordmark__forward">FORWARD</span>
           </div>
+          <div className="ff-version">v{APP_VERSION}</div>
         </div>
 
         <nav className="ff-nav" aria-label="Primary navigation">

@@ -85,6 +85,13 @@
   color: var(--ff-coral);
 }
 
+.ff-version {
+  color: var(--ff-text-secondary);
+  font: 500 10px/1.2 var(--ff-font-ui);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
 .ff-nav {
   display: flex;
   gap: 8px;
