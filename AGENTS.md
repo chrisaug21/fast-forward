@@ -122,8 +122,8 @@ Unless otherwise specified, do not run a local server for final verification. Op
 - Never reference internal service names (JustWatch, Supabase, Anthropic) in user-facing error messages. Use plain language: "Couldn't load streaming catalog. Will retry shortly."
 - Never hardcode hex colors — CSS custom properties only.
 - Never store the Plex token anywhere other than localStorage — never log it, never include in error messages.
-- VERSION bump is mandatory before every single push, no matter how small the change. Version lives in `src/utils/constants.js` as `APP_VERSION`, and `package.json` must match it.
-- Never push first and bump later. The pushed code must always show the latest version so testing can confirm the exact build.
+- VERSION bump is mandatory before every single push, no matter how small the change. No exceptions. Version lives in `src/utils/constants.js` as `APP_VERSION`, and `package.json` must match it.
+- Never push first and bump later. Ever. The pushed code must always show the latest version so testing can confirm the exact build without doubt.
 - Keep README.md accurate — update when new env vars, data sources, or major features are added.
 
 ## Planned Future Work
