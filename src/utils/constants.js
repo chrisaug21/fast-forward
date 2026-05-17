@@ -1,4 +1,4 @@
-export const APP_VERSION = "0.1.1";
+export const APP_VERSION = "0.1.2";
 
 export const STORAGE_KEYS = {
   plexToken: "wtw_plex_token",
