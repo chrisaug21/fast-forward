@@ -60,6 +60,13 @@
   backdrop-filter: blur(8px);
 }
 
+.ff-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
 .ff-wordmark {
   display: flex;
   align-items: baseline;
@@ -76,6 +83,13 @@
 
 .ff-wordmark__forward {
   color: var(--ff-coral);
+}
+
+.ff-version {
+  color: var(--ff-text-secondary);
+  font: 500 10px/1.2 var(--ff-font-ui);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
 .ff-nav {
