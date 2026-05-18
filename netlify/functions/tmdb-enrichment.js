@@ -3,6 +3,46 @@ import { normalizeCatalogType } from "./title-cache.js";
 const TMDB_API_BASE_URL = "https://api.themoviedb.org/3";
 const TMDB_IMAGE_BASE_URL = "https://image.tmdb.org/t/p";
 const TMDB_DELAY_MS = 100;
+const TMDB_ENRICHMENT_CONCURRENCY = 4;
+const MOVIE_GENRE_MAP = {
+  12: "Adventure",
+  14: "Fantasy",
+  16: "Animation",
+  18: "Drama",
+  27: "Horror",
+  28: "Action",
+  35: "Comedy",
+  36: "History",
+  37: "Western",
+  53: "Thriller",
+  80: "Crime",
+  99: "Documentary",
+  10402: "Music",
+  10749: "Romance",
+  10751: "Family",
+  10752: "War",
+  10770: "TV Movie",
+  878: "Science Fiction",
+  9648: "Mystery",
+};
+const TV_GENRE_MAP = {
+  16: "Animation",
+  18: "Drama",
+  35: "Comedy",
+  37: "Western",
+  80: "Crime",
+  99: "Documentary",
+  9648: "Mystery",
+  10751: "Family",
+  10759: "Action & Adventure",
+  10762: "Kids",
+  10763: "News",
+  10764: "Reality",
+  10765: "Sci-Fi & Fantasy",
+  10766: "Soap",
+  10767: "Talk",
+  10768: "War & Politics",
+};
 
 function delay(ms) {
   return new Promise((resolve) => {
@@ -12,6 +52,23 @@ function delay(ms) {
 
 function buildImageUrl(size, path) {
   return path ? `${TMDB_IMAGE_BASE_URL}/${size}${path}` : null;
+}
+
+function getGenreMap(type) {
+  return type === "movie" ? MOVIE_GENRE_MAP : TV_GENRE_MAP;
+}
+
+function getTmdbGenres(payload, type) {
+  if (Array.isArray(payload.genres) && payload.genres.length > 0) {
+    return payload.genres.map((genre) => genre.name).filter(Boolean);
+  }
+
+  if (!Array.isArray(payload.genre_ids) || payload.genre_ids.length === 0) {
+    return [];
+  }
+
+  const genreMap = getGenreMap(type);
+  return payload.genre_ids.map((genreId) => genreMap[genreId]).filter(Boolean);
 }
 
 function getContentRating(type, payload) {
@@ -77,9 +134,7 @@ function mergeTmdbData(baseItem, payload, type) {
     tmdbId: payload.id || baseItem.tmdbId,
     title: baseItem.title,
     releaseYear: baseItem.releaseYear ?? (Number.isInteger(releaseYear) ? releaseYear : null),
-    genres: Array.isArray(payload.genres)
-      ? payload.genres.map((genre) => genre.name).filter(Boolean)
-      : baseItem.genres,
+    genres: getTmdbGenres(payload, type).length > 0 ? getTmdbGenres(payload, type) : baseItem.genres,
     overview,
     description: overview,
     runtime: runtime ?? null,
@@ -147,19 +202,29 @@ async function enrichTitle(item, env) {
 
 export async function enrichTitles(items, env) {
   const enriched = [];
+  const work = items.map((item, index) => ({ item, index }));
 
-  for (let index = 0; index < items.length; index += 1) {
-    if (index > 0) {
-      await delay(TMDB_DELAY_MS);
-    }
+  async function runWorker(workerIndex) {
+    for (let index = workerIndex; index < work.length; index += TMDB_ENRICHMENT_CONCURRENCY) {
+      const { item, index: itemIndex } = work[index];
 
-    try {
-      enriched.push(await enrichTitle(items[index], env));
-    } catch (error) {
-      console.warn(`TMDB enrichment failed for "${items[index].title}"`, error);
-      enriched.push(buildBaseItem(items[index]));
+      await delay(itemIndex * TMDB_DELAY_MS);
+
+      try {
+        enriched[itemIndex] = await enrichTitle(item, env);
+      } catch (error) {
+        console.warn(`TMDB enrichment failed for "${item.title}"`, error);
+        enriched[itemIndex] = buildBaseItem(item);
+      }
     }
   }
+
+  await Promise.all(
+    Array.from(
+      { length: Math.min(TMDB_ENRICHMENT_CONCURRENCY, work.length) },
+      (_, workerIndex) => runWorker(workerIndex)
+    )
+  );
 
   return enriched;
 }

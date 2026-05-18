@@ -44,6 +44,7 @@ function normalizeServices(rawServices) {
   const services = rawServices
     .split(",")
     .map((value) => value.trim())
+    .map((value) => (value === "apple" ? "apple_tv" : value))
     .filter(Boolean);
 
   return [...new Set(services.filter((service) => SERVICE_MAP[service]))].sort();
