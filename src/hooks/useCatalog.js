@@ -58,7 +58,10 @@ export function useCatalog(notify) {
     setStreamingStatus("loading");
 
     try {
-      const { items, meta } = await fetchStreamingCatalog();
+      const { items: streamingItemsResponse, meta } = await fetchStreamingCatalog();
+      const items = Array.isArray(streamingItemsResponse?.titles)
+        ? streamingItemsResponse.titles
+        : streamingItemsResponse;
       setCatalog((previousCatalog) => {
         const plexItems = previousCatalog.filter((item) => item.source === "plex");
         return [...items, ...plexItems];
