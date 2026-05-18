@@ -205,16 +205,18 @@ export async function handler(event) {
     return json(500, { error: "Supabase environment variables are missing" });
   }
 
-  const writeClient = createSupabaseClient(
-    env.SUPABASE_SERVICE_ROLE_KEY ||
-      env.SUPABASE_ANON_KEY ||
-      env.VITE_SUPABASE_ANON_KEY
-  );
+  const writeClient = createSupabaseClient(env.SUPABASE_SERVICE_ROLE_KEY);
   const cacheKey = getCacheKey(services);
   let watchmodeFailure = null;
 
   try {
-    const cached = await readCache(readClient, cacheKey);
+    let cached = null;
+
+    try {
+      cached = await readCache(readClient, cacheKey);
+    } catch (cacheReadError) {
+      console.warn("fetch-streaming cache read failed; continuing without cache", cacheReadError);
+    }
 
     if (cached && new Date(cached.expires_at).getTime() > Date.now()) {
       return json(200, {
@@ -245,7 +247,18 @@ export async function handler(event) {
       return json(502, { error: "Streaming provider returned no results" });
     }
 
-    const cacheMeta = await writeCache(writeClient, cacheKey, items, source);
+    let cacheMeta = null;
+
+    if (!writeClient) {
+      console.warn("fetch-streaming cache write skipped; missing SUPABASE_SERVICE_ROLE_KEY");
+    } else {
+      try {
+        cacheMeta = await writeCache(writeClient, cacheKey, items, source);
+      } catch (cacheWriteError) {
+        console.warn("fetch-streaming cache write failed; continuing without cache", cacheWriteError);
+      }
+    }
+
     console.log("fetch-streaming source", source);
 
     return json(200, {
@@ -253,8 +266,8 @@ export async function handler(event) {
       meta: {
         cacheKey,
         source,
-        fetchedAt: cacheMeta.fetchedAt,
-        expiresAt: cacheMeta.expiresAt,
+        fetchedAt: cacheMeta?.fetchedAt || null,
+        expiresAt: cacheMeta?.expiresAt || null,
         fromCache: false,
       },
     });

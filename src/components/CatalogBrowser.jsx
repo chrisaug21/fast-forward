@@ -242,7 +242,10 @@ export default function CatalogBrowser({ catalog, onAddToWatchlist }) {
           {availableGenres.length > 0 && (
             <div className="ff-chip-row">
               <button
-                onClick={() => setSelectedGenre("all")}
+                onClick={() => {
+                  setSelectedGenre("all");
+                  setPage(1);
+                }}
                 className={`ff-chip${selectedGenre === "all" ? " ff-filter-tab--active" : ""}`}
               >
                 All
