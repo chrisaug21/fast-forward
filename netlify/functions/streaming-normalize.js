@@ -1,6 +1,6 @@
 export const SERVICE_MAP = {
-  max: { label: "Max", watchmode: "max", rapidApi: "max.subscription" },
-  apple_tv: { label: "Apple TV+", watchmode: "appletvplus", rapidApi: "apple.subscription" },
+  max: { label: "Max", watchmode: "387", rapidApi: "max.subscription" },
+  apple_tv: { label: "Apple TV+", watchmode: "371", rapidApi: "apple.subscription" },
 };
 
 function dedupeItems(items) {
