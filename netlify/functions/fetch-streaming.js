@@ -6,6 +6,8 @@ import {
 } from "./streaming-normalize.js";
 
 const CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+const WATCHMODE_MAX_PAGES = 5;
+const WATCHMODE_PAGE_SIZE = 250;
 const TIMEOUT_MS = 10000;
 const WATCHMODE_URL = "https://api.watchmode.com/v1/list-titles/";
 const RAPIDAPI_URL = "https://streaming-availability.p.rapidapi.com/shows/search/filters";
@@ -76,24 +78,39 @@ async function fetchWatchmodeCatalog(services) {
     throw new Error("Missing WATCHMODE_API_KEY");
   }
 
-  const url = new URL(WATCHMODE_URL);
-  url.searchParams.set("apiKey", env.WATCHMODE_API_KEY);
-  url.searchParams.set("regions", "US");
-  url.searchParams.set("source_types", "sub");
-  url.searchParams.set(
-    "source_ids",
-    services.map((service) => SERVICE_MAP[service].watchmode).join(",")
-  );
-  url.searchParams.set("limit", "250");
+  const titles = [];
 
-  console.warn("fetch-streaming is making a live Watchmode API call");
-  const response = await withTimeout(url.toString(), { method: "GET" });
+  for (let page = 1; page <= WATCHMODE_MAX_PAGES; page += 1) {
+    const url = new URL(WATCHMODE_URL);
+    url.searchParams.set("apiKey", env.WATCHMODE_API_KEY);
+    url.searchParams.set("regions", "US");
+    url.searchParams.set("source_types", "sub");
+    url.searchParams.set(
+      "source_ids",
+      services.map((service) => SERVICE_MAP[service].watchmode).join(",")
+    );
+    url.searchParams.set("types", "movie,tv_series,tv_miniseries");
+    url.searchParams.set("sort_by", "popularity_desc");
+    url.searchParams.set("limit", String(WATCHMODE_PAGE_SIZE));
+    url.searchParams.set("page", String(page));
 
-  if (!response.ok) {
-    throw new Error(`Watchmode returned HTTP ${response.status}`);
+    console.warn(`fetch-streaming is making a live Watchmode API call (page ${page})`);
+    const response = await withTimeout(url.toString(), { method: "GET" });
+
+    if (!response.ok) {
+      throw new Error(`Watchmode returned HTTP ${response.status}`);
+    }
+
+    const payload = await response.json();
+    const pageTitles = Array.isArray(payload.titles) ? payload.titles : [];
+    titles.push(...pageTitles);
+
+    if (!payload.total_pages || page >= payload.total_pages || pageTitles.length === 0) {
+      break;
+    }
   }
 
-  return normalizeWatchmodeResponse(await response.json(), services);
+  return normalizeWatchmodeResponse({ titles }, services);
 }
 
 async function fetchRapidApiCatalog(services) {
