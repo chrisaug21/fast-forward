@@ -24,7 +24,7 @@ of the browser.
 The streaming side now has two server-side cache layers:
 
 1. `streaming_cache`
-   Stores the final filtered catalog returned to the browser.
+   Stores the upstream normalized streaming catalog for 7 days.
 
 2. `titles_cache`
    Stores TMDB-enriched metadata for individual titles so poster, genre,
@@ -34,20 +34,22 @@ The flow is:
 
 1. The browser calls `/.netlify/functions/fetch-streaming`.
 2. `fetch-streaming` checks `public.streaming_cache`.
-3. If that cache is fresh, it returns cached items immediately.
+3. If that source cache is fresh, it reuses the source titles instead of hitting Watchmode.
 4. If not, it fetches live streaming titles from Watchmode.
 5. If Watchmode fails, it falls back to RapidAPI Streaming Availability.
-6. It reuses any fresh records already in `public.titles_cache`.
-7. It enriches up to 50 titles per invocation with TMDB metadata.
-8. It filters excluded genres after enrichment.
-9. It stores the enriched title metadata in `titles_cache`.
-10. It stores the final filtered catalog in `streaming_cache`.
+6. On every request, it checks `public.titles_cache` before building the response.
+7. Fresh TMDB records are reused immediately.
+8. Stale or missing TMDB records are re-enriched independently of the weekly source cache.
+9. It enriches up to 150 titles per invocation with TMDB metadata.
+10. It filters excluded genres after enrichment.
+11. It stores refreshed title metadata in `titles_cache`.
+12. It returns the filtered catalog to the browser.
 
 ## TMDB Enrichment Rules
 
 - TMDB runs only on the server
 - `TMDB_API_KEY` is never sent to the browser
-- max 50 titles are enriched per `fetch-streaming` run
+- max 150 titles are enriched per `fetch-streaming` run
 - a 100ms delay is added between TMDB requests
 - cached TMDB metadata is considered stale after 30 days
 - unmatched TMDB titles are still kept in the catalog with null metadata
