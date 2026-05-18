@@ -11,6 +11,7 @@
   SUPABASE_SERVICE_ROLE_KEY = "Set in Netlify UI for Functions scope"
   WATCHMODE_API_KEY = "Set in Netlify UI for Functions scope"
   RAPIDAPI_KEY = "Set in Netlify UI for Functions scope"
+  TMDB_API_KEY = "Set in Netlify UI for Functions scope"
 
 [[redirects]]
   from = "/*"

@@ -26,10 +26,6 @@ export default async function fetchStreamingCatalog() {
         ? payload.items.titles
         : [];
 
-    if (items.length === 0) {
-      throw new Error("Invalid streaming response");
-    }
-
     return {
       items,
       meta: payload.meta || null,
