@@ -1,131 +1,40 @@
 import { STREAMING_SERVICES } from "./constants";
 
-const REQUEST_DELAY_MS = 1000;
-const RETRY_DELAY_MS = 2000;
 const REQUEST_TIMEOUT_MS = 10000;
 
-const REQUESTS = [
-  { service: "hbo", type: "movie" },
-  { service: "hbo", type: "series" },
-  { service: "apple", type: "movie" },
-  { service: "apple", type: "series" },
-];
-
-function sleep(ms) {
-  return new Promise((resolve) => {
-    setTimeout(resolve, ms);
-  });
-}
-
-function getServiceLabel(serviceId) {
-  return (
-    STREAMING_SERVICES.find((service) => service.jwId === serviceId)?.label ||
-    serviceId
-  );
-}
-
-async function fetchStreamingBatch(service, type, retries = 3) {
-  const maxAttempts = Math.min(retries, 3);
-  const url = "/.netlify/functions/streaming";
-
-  for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => {
-      controller.abort();
-    }, REQUEST_TIMEOUT_MS);
-
-    try {
-      const response = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ service, type }),
-        signal: controller.signal,
-      });
-      clearTimeout(timeoutId);
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-
-      const data = await response.json();
-      if (!Array.isArray(data)) {
-        throw new Error("Invalid streaming response");
-      }
-
-      return data;
-    } catch {
-      clearTimeout(timeoutId);
-
-      if (attempt === maxAttempts - 1) {
-        throw new Error(
-          `Streaming catalog request failed after 3 attempts for ${service} ${type}`
-        );
-      }
-
-      await sleep(RETRY_DELAY_MS);
-    }
-  }
-
-  throw new Error(
-    `Streaming catalog request failed after 3 attempts for ${service} ${type}`
-  );
-}
-
 export default async function fetchStreamingCatalog() {
-  const combinedShows = new Map();
-  let failedRequests = 0;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  const services = STREAMING_SERVICES.map((service) => service.apiId).join(",");
 
-  for (let index = 0; index < REQUESTS.length; index += 1) {
-    const request = REQUESTS[index];
-    const serviceLabel = getServiceLabel(request.service);
-    try {
-      const shows = await fetchStreamingBatch(request.service, request.type);
+  try {
+    const response = await fetch("/.netlify/functions/fetch-streaming", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ services }),
+      signal: controller.signal,
+    });
 
-      shows.forEach((show) => {
-        const showType = show.showType || show.type || "unknown";
-        const dedupeKey =
-          show.tmdbId != null
-            ? `${show.tmdbId}:${showType}`
-            : `${request.service}:${request.type}:${showType}:${show.title}:${show.releaseYear || show.firstAirYear || "unknown"}`;
-
-        if (!combinedShows.has(dedupeKey)) {
-          combinedShows.set(dedupeKey, {
-            show,
-            streamingOn: new Set([serviceLabel]),
-          });
-          return;
-        }
-
-        combinedShows.get(dedupeKey).streamingOn.add(serviceLabel);
-      });
-    } catch (error) {
-      failedRequests += 1;
-      console.error(
-        `Streaming catalog batch failed for ${request.service} ${request.type}`,
-        error
-      );
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
     }
 
-    if (index < REQUESTS.length - 1) {
-      await sleep(REQUEST_DELAY_MS);
+    const payload = await response.json();
+    const items = Array.isArray(payload.items)
+      ? payload.items
+      : Array.isArray(payload.items?.titles)
+        ? payload.items.titles
+        : [];
+
+    if (items.length === 0) {
+      throw new Error("Invalid streaming response");
     }
-  }
 
-  if (combinedShows.size === 0 && failedRequests === REQUESTS.length) {
-    throw new Error("Streaming catalog request failed for all services");
+    return {
+      items,
+      meta: payload.meta || null,
+    };
+  } finally {
+    clearTimeout(timeoutId);
   }
-
-  return Array.from(combinedShows.values()).map(({ show, streamingOn }) => ({
-    id: show.tmdbId,
-    title: show.title,
-    type: show.showType === "series" ? "TV Show" : "Movie",
-    genres: show.genres?.map((genre) => genre.name) || [],
-    runtime: show.runtime || null,
-    imdbScore: show.rating ? show.rating / 10 : null,
-    releaseYear: show.releaseYear || show.firstAirYear || null,
-    description: show.overview || "",
-    posterUrl: show.imageSet?.verticalPoster?.w360 || null,
-    streamingOn: Array.from(streamingOn),
-    source: "streaming",
-  }));
 }

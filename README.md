@@ -1,16 +1,35 @@
-# React + Vite
+# Fast Forward
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Personal watchlist and recommendation app. Plex stays client-side, while the streaming catalog now goes through a Netlify function backed by a 7-day Supabase cache.
 
-Currently, two official plugins are available:
+## Stack
+- React + Vite
+- Netlify Functions
+- Supabase
+- Plex API
+- Anthropic API
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Streaming Catalog Flow
+- The browser calls `/.netlify/functions/fetch-streaming`.
+- The function checks `public.streaming_cache` in Supabase first.
+- If the cache is fresh, it returns cached data and does not call any upstream API.
+- If the cache is stale or missing, it tries Watchmode first and falls back to RapidAPI Streaming Availability only if Watchmode fails.
+- The function normalizes the provider response before storing it back in Supabase.
 
-## React Compiler
+## Files
+- `src/utils/streaming.js`: client call to the Netlify function
+- `src/utils/supabase.js`: shared browser Supabase client
+- `src/hooks/useCatalog.js`: catalog state and streaming load flow
+- `netlify/functions/fetch-streaming.js`: cache-first server function
+- `supabase/migrations/20260517203000_create_streaming_cache.sql`: table and RLS setup
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Environment Variables
+- Browser build: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`
+- Netlify function: `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `WATCHMODE_API_KEY`, `RAPIDAPI_KEY`
+- Use `.env.example` as the local template.
+- Set the Netlify runtime values in the Netlify UI. `netlify.toml` only documents the required names.
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Notes
+- Streaming data is no longer cached in `localStorage`.
+- Plex settings, watchlist, and watched history still use `localStorage`.
+- The function logs when it serves live data so API usage is visible in Netlify logs.

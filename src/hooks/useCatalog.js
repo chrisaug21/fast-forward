@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   DEFAULT_EXCLUDED_LIBRARIES,
-  SEVEN_DAYS_MS,
   STORAGE_KEYS,
 } from "../utils/constants";
 import fetchStreamingCatalog from "../utils/streaming";
@@ -9,21 +8,9 @@ import { fetchPlexLibrary } from "../utils/plex";
 import { readStorage, removeStorage, writeStorage } from "../utils/storage";
 
 function getInitialCatalogState() {
-  const justWatchCache = readStorage(STORAGE_KEYS.justWatchCache, []);
   const plexCache = readStorage(STORAGE_KEYS.plexCache, []);
 
-  return [...justWatchCache, ...plexCache];
-}
-
-function getInitialStreamingStatus() {
-  const justWatchCache = readStorage(STORAGE_KEYS.justWatchCache, []);
-  const justWatchTimestamp = readStorage(STORAGE_KEYS.justWatchCacheTimestamp, 0);
-
-  if (justWatchCache.length === 0) {
-    return "idle";
-  }
-
-  return Date.now() - justWatchTimestamp > SEVEN_DAYS_MS ? "idle" : "cached";
+  return [...plexCache];
 }
 
 export function useCatalog(notify) {
@@ -37,7 +24,8 @@ export function useCatalog(notify) {
     readStorage(STORAGE_KEYS.plexExcluded, DEFAULT_EXCLUDED_LIBRARIES)
   );
   const [catalog, setCatalog] = useState(getInitialCatalogState);
-  const [streamingStatus, setStreamingStatus] = useState(getInitialStreamingStatus);
+  const [streamingStatus, setStreamingStatus] = useState("idle");
+  const [streamingFetchedAt, setStreamingFetchedAt] = useState(null);
   const [plexStatus, setPlexStatus] = useState("idle");
   const notifyRef = useRef(notify);
   const isFetchingStreamingRef = useRef(false);
@@ -70,15 +58,17 @@ export function useCatalog(notify) {
     setStreamingStatus("loading");
 
     try {
-      const results = await fetchStreamingCatalog();
-      writeStorage(STORAGE_KEYS.justWatchCache, results);
-      writeStorage(STORAGE_KEYS.justWatchCacheTimestamp, Date.now());
+      const { items: streamingItemsResponse, meta } = await fetchStreamingCatalog();
+      const items = Array.isArray(streamingItemsResponse?.titles)
+        ? streamingItemsResponse.titles
+        : streamingItemsResponse;
       setCatalog((previousCatalog) => {
         const plexItems = previousCatalog.filter((item) => item.source === "plex");
-        return [...results, ...plexItems];
+        return [...items, ...plexItems];
       });
-      setStreamingStatus("ok");
-      notifyRef.current(`Loaded ${results.length} streaming titles`, "success");
+      setStreamingFetchedAt(meta?.fetchedAt || null);
+      setStreamingStatus(meta?.fromCache ? "cached" : "ok");
+      notifyRef.current(`Loaded ${items.length} streaming titles`, "success");
     } catch {
       setStreamingStatus("error");
       notifyRef.current("Streaming catalog fetch failed. Using cache if available.", "error");
@@ -121,19 +111,19 @@ export function useCatalog(notify) {
   }, [excludedLibraries, plexToken, plexUrl]);
 
   const getStreamingCacheAge = useCallback(() => {
-    const timestamp = readStorage(STORAGE_KEYS.justWatchCacheTimestamp, 0);
-
-    if (!timestamp) {
+    if (!streamingFetchedAt) {
       return null;
     }
 
+    const timestamp = new Date(streamingFetchedAt).getTime();
     const days = Math.floor((Date.now() - timestamp) / (24 * 60 * 60 * 1000));
     return days === 0 ? "today" : `${days}d ago`;
-  }, []);
+  }, [streamingFetchedAt]);
 
   const clearCatalogData = useCallback(() => {
     setCatalog([]);
     setStreamingStatus("idle");
+    setStreamingFetchedAt(null);
     setPlexStatus("idle");
     removeStorage(STORAGE_KEYS.justWatchCache);
     removeStorage(STORAGE_KEYS.justWatchCacheTimestamp);
@@ -141,19 +131,13 @@ export function useCatalog(notify) {
   }, []);
 
   useEffect(() => {
-    const justWatchTimestamp = readStorage(STORAGE_KEYS.justWatchCacheTimestamp, 0);
+    const timeoutId = setTimeout(() => {
+      loadStreamingCatalog();
+    }, 0);
 
-    const isStale = Date.now() - justWatchTimestamp > SEVEN_DAYS_MS;
-
-    if (isStale) {
-      const timeoutId = setTimeout(() => {
-        loadStreamingCatalog();
-      }, 0);
-
-      return () => {
-        clearTimeout(timeoutId);
-      };
-    }
+    return () => {
+      clearTimeout(timeoutId);
+    };
   }, [loadStreamingCatalog]);
 
   return {

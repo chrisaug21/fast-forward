@@ -3,6 +3,15 @@
   publish = "dist"
   functions = "netlify/functions"
 
+[template.environment]
+  VITE_SUPABASE_URL = "Set in Netlify UI for Builds scope"
+  VITE_SUPABASE_ANON_KEY = "Set in Netlify UI for Builds scope"
+  SUPABASE_URL = "Set in Netlify UI for Functions scope"
+  SUPABASE_ANON_KEY = "Set in Netlify UI for Functions scope"
+  SUPABASE_SERVICE_ROLE_KEY = "Set in Netlify UI for Functions scope"
+  WATCHMODE_API_KEY = "Set in Netlify UI for Functions scope"
+  RAPIDAPI_KEY = "Set in Netlify UI for Functions scope"
+
 [[redirects]]
   from = "/*"
   to = "/index.html"
