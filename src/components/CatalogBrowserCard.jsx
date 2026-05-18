@@ -1,3 +1,5 @@
+import { getCatalogPosterUrl } from "../utils/tmdbImages";
+
 function formatRuntime(runtime) {
   return Number.isInteger(runtime) ? `${runtime}m` : null;
 }
@@ -10,6 +12,7 @@ export default function CatalogBrowserCard({ item, onAddToWatchlist }) {
   const sourceLabel =
     item.source === "streaming" ? item.streamingOn?.[0] || "Streaming" : "Plex";
   const metaBadges = buildMetaBadges(item);
+  const posterUrl = getCatalogPosterUrl(item.posterUrl);
 
   return (
     <button
@@ -19,8 +22,15 @@ export default function CatalogBrowserCard({ item, onAddToWatchlist }) {
       title="Click to add to watchlist"
     >
       <div className="ff-card-poster">
-        {item.posterUrl ? (
-          <img src={item.posterUrl} alt="" loading="lazy" className="ff-card-poster__image" />
+        {posterUrl ? (
+          <img
+            src={posterUrl}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            fetchPriority="low"
+            className="ff-card-poster__image"
+          />
         ) : (
           <div className="ff-card-poster__fallback">
             {item.type === "Movie" ? "Movie" : "Series"}
