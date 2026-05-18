@@ -18,6 +18,10 @@ function json(statusCode, body) {
   };
 }
 
+function getErrorMessage(error) {
+  return error instanceof Error ? error.message : "Unknown error";
+}
+
 function parseServices(event) {
   if (event.httpMethod === "GET") {
     return event.queryStringParameters?.services || "";
@@ -182,6 +186,7 @@ export async function handler(event) {
       env.VITE_SUPABASE_ANON_KEY
   );
   const cacheKey = getCacheKey(services);
+  let watchmodeFailure = null;
 
   try {
     const cached = await readCache(readClient, cacheKey);
@@ -206,6 +211,7 @@ export async function handler(event) {
       items = await fetchWatchmodeCatalog(services);
     } catch (watchmodeError) {
       console.warn("Watchmode failed, falling back to RapidAPI", watchmodeError);
+      watchmodeFailure = getErrorMessage(watchmodeError);
       items = await fetchRapidApiCatalog(services);
       source = "rapidapi";
     }
@@ -230,7 +236,8 @@ export async function handler(event) {
   } catch (error) {
     console.error("fetch-streaming failed", error);
     return json(500, {
-      error: error instanceof Error ? error.message : "Unknown error",
+      error: getErrorMessage(error),
+      watchmodeError: watchmodeFailure,
     });
   }
 }
