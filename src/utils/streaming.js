@@ -20,14 +20,14 @@ export default async function fetchStreamingCatalog() {
     }
 
     const payload = await response.json();
-    const items = Array.isArray(payload.items) ? payload.items : [];
+    const titles = Array.isArray(payload.items?.titles) ? payload.items.titles : [];
 
-    if (items.length === 0) {
+    if (titles.length === 0) {
       throw new Error("Invalid streaming response");
     }
 
     return {
-      items,
+      items: payload.items,
       meta: payload.meta || null,
     };
   } finally {
