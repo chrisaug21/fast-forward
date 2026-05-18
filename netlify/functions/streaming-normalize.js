@@ -30,7 +30,13 @@ export function mergeNormalizedItems(items) {
 
 function normalizeItem(rawItem, fallbackServiceLabel) {
   const rawType = rawItem.showType || rawItem.type || rawItem.tmdbType || rawItem.media_type;
-  const isSeries = rawType === "series" || rawType === "tv_series" || rawType === "show";
+  const isSeries = [
+    "series",
+    "show",
+    "tv",
+    "tv_miniseries",
+    "tv_series",
+  ].includes(rawType);
   const streamingOn =
     Array.isArray(rawItem.streamingOn) && rawItem.streamingOn.length > 0
       ? rawItem.streamingOn
