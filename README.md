@@ -24,7 +24,7 @@ of the browser.
 The streaming side now has two server-side cache layers:
 
 1. `streaming_cache`
-   Stores the upstream normalized streaming catalog for 7 days.
+   Stores the upstream normalized streaming catalog for 7 days, split by service.
 
 2. `titles_cache`
    Stores TMDB-enriched metadata for individual titles so poster, genre,
@@ -33,17 +33,18 @@ The streaming side now has two server-side cache layers:
 The flow is:
 
 1. The browser calls `/.netlify/functions/fetch-streaming`.
-2. `fetch-streaming` checks `public.streaming_cache`.
-3. If that source cache is fresh, it reuses the source titles instead of hitting Watchmode.
-4. If not, it fetches live streaming titles from Watchmode.
-5. If Watchmode fails, it falls back to RapidAPI Streaming Availability.
-6. On every request, it checks `public.titles_cache` before building the response.
-7. Fresh TMDB records are reused immediately.
-8. Stale or missing TMDB records are re-enriched independently of the weekly source cache.
-9. It enriches up to 150 titles per invocation with TMDB metadata.
-10. It filters excluded genres after enrichment.
-11. It stores refreshed title metadata in `titles_cache`.
-12. It returns the filtered catalog to the browser.
+2. `fetch-streaming` checks `public.streaming_cache` separately for Max and Apple TV+.
+3. If a service cache is fresh, it reuses that service's source titles instead of hitting Watchmode.
+4. If a service cache is stale, it refreshes that service from Watchmode with throttled page requests.
+5. If Watchmode fails for one service, stale cached titles for that service are returned instead of failing the whole catalog.
+6. The per-service source catalogs are merged after refresh/cache checks finish.
+7. On every request, it checks `public.titles_cache` before building the response.
+8. Fresh TMDB records are reused immediately.
+9. Stale or missing TMDB records are re-enriched independently of the weekly source cache.
+10. It enriches up to 150 titles per invocation with TMDB metadata.
+11. It filters excluded genres after enrichment.
+12. It stores refreshed title metadata in `titles_cache`.
+13. It returns the filtered catalog to the browser.
 
 ## TMDB Enrichment Rules
 
@@ -75,7 +76,6 @@ Excluded genres:
 - Plex API
 - Anthropic API
 - Watchmode
-- RapidAPI Streaming Availability
 - TMDB
 
 ## Project Structure
@@ -106,9 +106,11 @@ netlify/functions/
   enrich-titles.js                direct TMDB enrichment endpoint
   tmdb-enrichment.js              TMDB lookup + mapping helpers
   title-cache.js                  titles_cache read/write helpers
+  source-cache.js                 per-service streaming cache helpers
+  source-catalog.js               per-service Watchmode refresh orchestration
   catalog-filter.js               post-enrichment genre filtering
   streaming-normalize.js          source response normalization
-  streaming-sources.js            Watchmode and RapidAPI source fetchers
+  streaming-sources.js            Watchmode source fetchers
 
 supabase/migrations/
   20260517203000_create_streaming_cache.sql

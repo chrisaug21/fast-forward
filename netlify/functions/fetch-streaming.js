@@ -1,6 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { filterTitlesByGenre } from "./catalog-filter.js";
-import { fetchAllWatchmodeCatalog, fetchRapidApiCatalog } from "./streaming-sources.js";
+import { loadSourceCatalog } from "./source-catalog.js";
 import {
   buildTitleLookupKey,
   isTitleCacheStale,
@@ -11,7 +11,6 @@ import {
 import { enrichTitles } from "./tmdb-enrichment.js";
 import { SERVICE_MAP } from "./streaming-normalize.js";
 
-const CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 const TMDB_ENRICHMENT_LIMIT = 150;
 const env = globalThis.process?.env ?? {};
 
@@ -50,10 +49,6 @@ function normalizeServices(rawServices) {
   return [...new Set(services.filter((service) => SERVICE_MAP[service]))].sort();
 }
 
-function getCacheKey(services) {
-  return `streaming:us:${services.join(",")}`;
-}
-
 function createSupabaseClient(key) {
   const url = env.SUPABASE_URL || env.VITE_SUPABASE_URL;
 
@@ -64,41 +59,6 @@ function createSupabaseClient(key) {
   return createClient(url, key, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
-}
-
-async function readCache(client, cacheKey) {
-  const { data, error } = await client
-    .from("streaming_cache")
-    .select("cache_key,data,fetched_at,expires_at")
-    .eq("cache_key", cacheKey)
-    .maybeSingle();
-
-  if (error) {
-    throw error;
-  }
-
-  return data;
-}
-
-async function writeCache(client, cacheKey, items, source) {
-  const fetchedAt = new Date().toISOString();
-  const expiresAt = new Date(Date.now() + CACHE_TTL_MS).toISOString();
-
-  const { error } = await client.from("streaming_cache").upsert(
-    {
-      cache_key: cacheKey,
-      data: { items, source },
-      fetched_at: fetchedAt,
-      expires_at: expiresAt,
-    },
-    { onConflict: "cache_key" }
-  );
-
-  if (error) {
-    throw error;
-  }
-
-  return { fetchedAt, expiresAt };
 }
 
 function mergeCachedMetadata(rawItem, cachedRow) {
@@ -204,57 +164,12 @@ export async function handler(event) {
   }
 
   const writeClient = createSupabaseClient(env.SUPABASE_SERVICE_ROLE_KEY);
-  const cacheKey = getCacheKey(services);
-  let watchmodeFailure = null;
-
   try {
-    let cached = null;
-
-    try {
-      cached = await readCache(readClient, cacheKey);
-    } catch (cacheReadError) {
-      console.warn("fetch-streaming cache read failed; continuing without cache", cacheReadError);
-    }
-
-    let sourceItems = null;
-    let source = cached?.data?.source || "watchmode";
-    let sourceCacheMeta = {
-      fetchedAt: cached?.fetched_at || null,
-      expiresAt: cached?.expires_at || null,
-      fromCache: false,
-    };
-
-    if (cached && new Date(cached.expires_at).getTime() > Date.now()) {
-      sourceItems = Array.isArray(cached.data?.items) ? cached.data.items : cached.data;
-      sourceCacheMeta.fromCache = true;
-    } else {
-      try {
-        sourceItems = await fetchAllWatchmodeCatalog(services, env);
-      } catch (watchmodeError) {
-        console.warn("Watchmode failed, falling back to RapidAPI", watchmodeError);
-        watchmodeFailure = getErrorMessage(watchmodeError);
-        sourceItems = await fetchRapidApiCatalog(services, env);
-        source = "rapidapi";
-      }
-    }
+    const sourceCatalog = await loadSourceCatalog(services, readClient, writeClient, env);
+    const sourceItems = sourceCatalog.items;
 
     if (!Array.isArray(sourceItems) || sourceItems.length === 0) {
       return json(502, { error: "Streaming provider returned no results" });
-    }
-
-    if (!sourceCacheMeta.fromCache) {
-      if (!writeClient) {
-        console.warn("fetch-streaming cache write skipped; missing SUPABASE_SERVICE_ROLE_KEY");
-      } else {
-        try {
-          sourceCacheMeta = {
-            ...(await writeCache(writeClient, cacheKey, sourceItems, source)),
-            fromCache: false,
-          };
-        } catch (cacheWriteError) {
-          console.warn("fetch-streaming cache write failed; continuing without cache", cacheWriteError);
-        }
-      }
     }
 
     const {
@@ -263,16 +178,12 @@ export async function handler(event) {
     } = await enrichCatalogItems(sourceItems, readClient, writeClient);
     const { kept: filteredItems, filteredOut } = filterTitlesByGenre(enrichedItems);
     console.log(`fetch-streaming filtered out ${filteredOut} titles by genre`);
-    console.log("fetch-streaming source", source);
+    console.log("fetch-streaming source", sourceCatalog.meta);
 
     return json(200, {
       items: filteredItems,
       meta: {
-        cacheKey,
-        source,
-        fetchedAt: sourceCacheMeta.fetchedAt,
-        expiresAt: sourceCacheMeta.expiresAt,
-        fromCache: sourceCacheMeta.fromCache,
+        services: sourceCatalog.meta,
         enrichedCount: enrichmentMeta.enrichedCount,
         usedFreshTitleCacheCount: enrichmentMeta.usedFreshTitleCacheCount,
         staleTitleCacheCount: enrichmentMeta.staleTitleCacheCount,
@@ -284,7 +195,7 @@ export async function handler(event) {
     console.error("fetch-streaming failed", error);
     return json(500, {
       error: getErrorMessage(error),
-      watchmodeError: watchmodeFailure,
+      watchmodeError: getErrorMessage(error),
     });
   }
 }
