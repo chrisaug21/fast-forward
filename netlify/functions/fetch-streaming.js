@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import {
+  mergeNormalizedItems,
   normalizeRapidApiResponse,
   normalizeWatchmodeResponse,
   SERVICE_MAP,
@@ -73,7 +74,7 @@ async function withTimeout(url, options) {
   }
 }
 
-async function fetchWatchmodeCatalog(services) {
+async function fetchWatchmodeCatalog(service) {
   if (!env.WATCHMODE_API_KEY) {
     throw new Error("Missing WATCHMODE_API_KEY");
   }
@@ -85,16 +86,15 @@ async function fetchWatchmodeCatalog(services) {
     url.searchParams.set("apiKey", env.WATCHMODE_API_KEY);
     url.searchParams.set("regions", "US");
     url.searchParams.set("source_types", "sub");
-    url.searchParams.set(
-      "source_ids",
-      services.map((service) => SERVICE_MAP[service].watchmode).join(",")
-    );
+    url.searchParams.set("source_ids", SERVICE_MAP[service].watchmode);
     url.searchParams.set("types", "movie,tv_series,tv_miniseries");
     url.searchParams.set("sort_by", "popularity_desc");
     url.searchParams.set("limit", String(WATCHMODE_PAGE_SIZE));
     url.searchParams.set("page", String(page));
 
-    console.warn(`fetch-streaming is making a live Watchmode API call (page ${page})`);
+    console.warn(
+      `fetch-streaming is making a live Watchmode API call for ${service} (page ${page})`
+    );
     const response = await withTimeout(url.toString(), { method: "GET" });
 
     if (!response.ok) {
@@ -110,7 +110,15 @@ async function fetchWatchmodeCatalog(services) {
     }
   }
 
-  return normalizeWatchmodeResponse({ titles }, services);
+  return normalizeWatchmodeResponse({ titles }, [service]);
+}
+
+async function fetchAllWatchmodeCatalog(services) {
+  const providerItems = await Promise.all(
+    services.map((service) => fetchWatchmodeCatalog(service))
+  );
+
+  return mergeNormalizedItems(providerItems.flat());
 }
 
 async function fetchRapidApiCatalog(services) {
@@ -225,7 +233,7 @@ export async function handler(event) {
     let source = "watchmode";
 
     try {
-      items = await fetchWatchmodeCatalog(services);
+      items = await fetchAllWatchmodeCatalog(services);
     } catch (watchmodeError) {
       console.warn("Watchmode failed, falling back to RapidAPI", watchmodeError);
       watchmodeFailure = getErrorMessage(watchmodeError);

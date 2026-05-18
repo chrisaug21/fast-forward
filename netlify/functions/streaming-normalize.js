@@ -24,6 +24,10 @@ function dedupeItems(items) {
   return [...deduped.values()];
 }
 
+export function mergeNormalizedItems(items) {
+  return dedupeItems(items);
+}
+
 function normalizeItem(rawItem, fallbackServiceLabel) {
   const rawType = rawItem.showType || rawItem.type || rawItem.tmdbType || rawItem.media_type;
   const isSeries = rawType === "series" || rawType === "tv_series" || rawType === "show";
