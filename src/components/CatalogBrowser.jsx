@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 const TITLES_PER_PAGE = 50;
 const GENRE_PILL_LIMIT = 10;
@@ -139,21 +139,12 @@ export default function CatalogBrowser({ catalog, onAddToWatchlist }) {
   const pageStart = (currentPage - 1) * TITLES_PER_PAGE;
   const paginatedCatalog = sortedCatalog.slice(pageStart, pageStart + TITLES_PER_PAGE);
 
-  useEffect(() => {
-    setPage(1);
-  }, [activeTab, query, typeFilter, selectedGenre, selectedServices, sortBy]);
-
-  useEffect(() => {
-    if (page > totalPages) {
-      setPage(totalPages);
-    }
-  }, [page, totalPages]);
-
   if (catalog.length === 0) {
     return null;
   }
 
   function toggleService(service) {
+    setPage(1);
     setSelectedServices((currentServices) =>
       currentServices.includes(service)
         ? currentServices.filter((currentService) => currentService !== service)
@@ -177,7 +168,10 @@ export default function CatalogBrowser({ catalog, onAddToWatchlist }) {
             ].map(([id, label, count]) => (
               <button
                 key={id}
-                onClick={() => setActiveTab(id)}
+                onClick={() => {
+                  setActiveTab(id);
+                  setPage(1);
+                }}
                 className={`ff-filter-tab${activeTab === id ? " ff-filter-tab--active" : ""}`}
               >
                 {label} {count}
@@ -191,7 +185,10 @@ export default function CatalogBrowser({ catalog, onAddToWatchlist }) {
           placeholder="Search catalog"
           aria-label="Search catalog"
           value={query}
-          onChange={(event) => setQuery(event.target.value)}
+          onChange={(event) => {
+            setQuery(event.target.value);
+            setPage(1);
+          }}
         />
       </div>
 
@@ -205,7 +202,10 @@ export default function CatalogBrowser({ catalog, onAddToWatchlist }) {
             ].map(([id, label]) => (
               <button
                 key={id}
-                onClick={() => setTypeFilter(id)}
+                onClick={() => {
+                  setTypeFilter(id);
+                  setPage(1);
+                }}
                 className={`ff-filter-tab${typeFilter === id ? " ff-filter-tab--active" : ""}`}
               >
                 {label}
@@ -216,7 +216,10 @@ export default function CatalogBrowser({ catalog, onAddToWatchlist }) {
           {availableServices.length > 0 && (
             <div className="ff-chip-row">
               <button
-                onClick={() => setSelectedServices([])}
+                onClick={() => {
+                  setSelectedServices([]);
+                  setPage(1);
+                }}
                 className={`ff-chip${selectedServices.length === 0 ? " ff-filter-tab--active" : ""}`}
               >
                 All
@@ -248,7 +251,10 @@ export default function CatalogBrowser({ catalog, onAddToWatchlist }) {
               {availableGenres.map((genre) => (
                 <button
                   key={genre}
-                  onClick={() => setSelectedGenre(genre)}
+                  onClick={() => {
+                    setSelectedGenre(genre);
+                    setPage(1);
+                  }}
                   className={`ff-chip${selectedGenre === genre ? " ff-filter-tab--active" : ""}`}
                 >
                   {genre}
@@ -262,7 +268,10 @@ export default function CatalogBrowser({ catalog, onAddToWatchlist }) {
           className="ff-input ff-catalog-search"
           aria-label="Sort catalog"
           value={sortBy}
-          onChange={(event) => setSortBy(event.target.value)}
+          onChange={(event) => {
+            setSortBy(event.target.value);
+            setPage(1);
+          }}
         >
           {SORT_OPTIONS.map(([value, label]) => (
             <option key={value} value={value}>
