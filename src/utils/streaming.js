@@ -1,6 +1,6 @@
 import { STREAMING_SERVICES } from "./constants";
 
-const REQUEST_TIMEOUT_MS = 10000;
+const REQUEST_TIMEOUT_MS = 60000;
 
 export default async function fetchStreamingCatalog() {
   const controller = new AbortController();
