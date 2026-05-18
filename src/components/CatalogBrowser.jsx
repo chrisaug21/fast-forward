@@ -1,15 +1,9 @@
 import { useState } from "react";
+import CatalogBrowserCard from "./CatalogBrowserCard";
+import CatalogBrowserFilters from "./CatalogBrowserFilters";
 
 const TITLES_PER_PAGE = 50;
 const GENRE_PILL_LIMIT = 10;
-
-const SORT_OPTIONS = [
-  ["rating-desc", "Rating (Highest)"],
-  ["title-asc", "Title A-Z"],
-  ["title-desc", "Title Z-A"],
-  ["year-desc", "Year (Newest)"],
-  ["year-asc", "Year (Oldest)"],
-];
 
 function normalizeText(value) {
   return typeof value === "string" ? value.trim().toLowerCase() : "";
@@ -157,164 +151,53 @@ export default function CatalogBrowser({ catalog, onAddToWatchlist }) {
 
   return (
     <div>
-      <div className="ff-catalog-header">
-        <div className="ff-catalog-controls">
-          <div className="ff-catalog-title">Browse Catalog</div>
-          <div className="ff-filter-tabs">
-            {[
-              ["all", "All", catalog.length],
-              ["streaming", "Streaming", streamingCount],
-              ["plex", "Plex", plexCount],
-            ].map(([id, label, count]) => (
-              <button
-                key={id}
-                onClick={() => {
-                  setActiveTab(id);
-                  setPage(1);
-                }}
-                className={`ff-filter-tab${activeTab === id ? " ff-filter-tab--active" : ""}`}
-              >
-                {label} {count}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <input
-          className="ff-input ff-catalog-search"
-          placeholder="Search catalog"
-          aria-label="Search catalog"
-          value={query}
-          onChange={(event) => {
-            setQuery(event.target.value);
-            setPage(1);
-          }}
-        />
-      </div>
-
-      <div className="ff-catalog-header">
-        <div className="ff-catalog-controls">
-          <div className="ff-filter-tabs">
-            {[
-              ["all", "All"],
-              ["movies", "Movies"],
-              ["tv", "TV Shows"],
-            ].map(([id, label]) => (
-              <button
-                key={id}
-                onClick={() => {
-                  setTypeFilter(id);
-                  setPage(1);
-                }}
-                className={`ff-filter-tab${typeFilter === id ? " ff-filter-tab--active" : ""}`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-
-          {availableServices.length > 0 && (
-            <div className="ff-chip-row">
-              <button
-                onClick={() => {
-                  setSelectedServices([]);
-                  setPage(1);
-                }}
-                className={`ff-chip${selectedServices.length === 0 ? " ff-filter-tab--active" : ""}`}
-              >
-                All
-              </button>
-
-              {availableServices.map((service) => (
-                <button
-                  key={service}
-                  onClick={() => toggleService(service)}
-                  className={`ff-chip${
-                    selectedServices.includes(service) ? " ff-filter-tab--active" : ""
-                  }`}
-                >
-                  {service}
-                </button>
-              ))}
-            </div>
-          )}
-
-          {availableGenres.length > 0 && (
-            <div className="ff-chip-row">
-              <button
-                onClick={() => {
-                  setSelectedGenre("all");
-                  setPage(1);
-                }}
-                className={`ff-chip${selectedGenre === "all" ? " ff-filter-tab--active" : ""}`}
-              >
-                All
-              </button>
-
-              {availableGenres.map((genre) => (
-                <button
-                  key={genre}
-                  onClick={() => {
-                    setSelectedGenre(genre);
-                    setPage(1);
-                  }}
-                  className={`ff-chip${selectedGenre === genre ? " ff-filter-tab--active" : ""}`}
-                >
-                  {genre}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-
-        <select
-          className="ff-input ff-catalog-search"
-          aria-label="Sort catalog"
-          value={sortBy}
-          onChange={(event) => {
-            setSortBy(event.target.value);
-            setPage(1);
-          }}
-        >
-          {SORT_OPTIONS.map(([value, label]) => (
-            <option key={value} value={value}>
-              {label}
-            </option>
-          ))}
-        </select>
-      </div>
+      <CatalogBrowserFilters
+        catalogCount={catalog.length}
+        streamingCount={streamingCount}
+        plexCount={plexCount}
+        activeTab={activeTab}
+        setActiveTab={(value) => {
+          setActiveTab(value);
+          setPage(1);
+        }}
+        query={query}
+        setQuery={(value) => {
+          setQuery(value);
+          setPage(1);
+        }}
+        typeFilter={typeFilter}
+        setTypeFilter={(value) => {
+          setTypeFilter(value);
+          setPage(1);
+        }}
+        availableServices={availableServices}
+        selectedServices={selectedServices}
+        toggleService={toggleService}
+        clearServices={() => {
+          setSelectedServices([]);
+          setPage(1);
+        }}
+        availableGenres={availableGenres}
+        selectedGenre={selectedGenre}
+        setSelectedGenre={(value) => {
+          setSelectedGenre(value);
+          setPage(1);
+        }}
+        sortBy={sortBy}
+        setSortBy={(value) => {
+          setSortBy(value);
+          setPage(1);
+        }}
+      />
 
       <div className="ff-catalog-grid">
-        {paginatedCatalog.map((item) => {
-          const sourceLabel =
-            item.source === "streaming" ? item.streamingOn?.[0] || "Streaming" : "Plex";
-
-          return (
-            <div
-              key={item.id}
-              className="ff-card"
-              onClick={() => onAddToWatchlist(item)}
-              title="Click to add to watchlist"
-            >
-              <div className="ff-card-title">{item.title}</div>
-
-              <div className="ff-card-meta">
-                <span>{item.releaseYear || "Unknown year"}</span>
-                <span
-                  className={`ff-source-badge ${
-                    item.source === "streaming"
-                      ? "ff-source-badge--streaming"
-                      : "ff-source-badge--plex"
-                  }`}
-                >
-                  {sourceLabel}
-                </span>
-              </div>
-
-              {item.imdbScore && <div className="ff-card-rating">★ {item.imdbScore}</div>}
-            </div>
-          );
-        })}
+        {paginatedCatalog.map((item) => (
+          <CatalogBrowserCard
+            key={item.id}
+            item={item}
+            onAddToWatchlist={onAddToWatchlist}
+          />
+        ))}
       </div>
 
       <div className="ff-catalog-footnote">

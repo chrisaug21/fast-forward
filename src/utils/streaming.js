@@ -1,6 +1,6 @@
 import { STREAMING_SERVICES } from "./constants";
 
-const REQUEST_TIMEOUT_MS = 10000;
+const REQUEST_TIMEOUT_MS = 60000;
 
 export default async function fetchStreamingCatalog() {
   const controller = new AbortController();
@@ -25,10 +25,6 @@ export default async function fetchStreamingCatalog() {
       : Array.isArray(payload.items?.titles)
         ? payload.items.titles
         : [];
-
-    if (items.length === 0) {
-      throw new Error("Invalid streaming response");
-    }
 
     return {
       items,

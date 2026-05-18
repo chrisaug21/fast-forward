@@ -297,6 +297,10 @@
   color: var(--ff-text-primary);
 }
 
+.ff-chip--static {
+  cursor: default;
+}
+
 .ff-recommendations {
   margin-bottom: 28px;
 }
@@ -415,6 +419,11 @@
   flex: 1;
 }
 
+.ff-catalog-controls--stacked {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
 .ff-catalog-title {
   color: var(--ff-text-primary);
   font: 600 13px/1.2 var(--ff-font-ui);
@@ -453,9 +462,9 @@
 
 .ff-catalog-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
   gap: 8px;
-  max-height: 400px;
+  max-height: 520px;
   overflow-y: auto;
 }
 
@@ -468,32 +477,74 @@
   transition: border-color 0.15s ease;
 }
 
+.ff-card--catalog {
+  padding: 0;
+  overflow: hidden;
+  text-align: left;
+}
+
 .ff-card:hover {
   border-color: var(--ff-coral);
 }
 
+.ff-card-poster {
+  aspect-ratio: 2 / 3;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--ff-coral) 22%, transparent), transparent),
+    color-mix(in srgb, var(--ff-bg-surface) 84%, black);
+}
+
+.ff-card-poster__image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ff-card-poster__fallback {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  color: var(--ff-text-secondary);
+  font: 600 11px/1.2 var(--ff-font-ui);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.ff-card-body {
+  padding: 8px;
+}
+
 .ff-card-title {
-  margin-bottom: 6px;
+  margin-bottom: 4px;
   color: var(--ff-text-primary);
-  font: 500 12px/1.35 var(--ff-font-ui);
+  font: 600 11px/1.3 var(--ff-font-ui);
 }
 
 .ff-card-meta {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   flex-wrap: wrap;
   color: var(--ff-text-secondary);
-  font: 400 10px/1.3 var(--ff-font-ui);
+  font: 400 9px/1.25 var(--ff-font-ui);
+}
+
+.ff-card-badges {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-top: 6px;
 }
 
 .ff-source-badge {
   display: inline-flex;
   align-items: center;
-  padding: 2px 6px;
+  padding: 2px 5px;
   border: 1px solid transparent;
   border-radius: 999px;
-  font: 500 10px/1.2 var(--ff-font-ui);
+  font: 500 9px/1.1 var(--ff-font-ui);
 }
 
 .ff-source-badge--streaming {
@@ -510,7 +561,7 @@
 .ff-card-rating {
   margin-top: 6px;
   color: var(--ff-coral);
-  font: 500 10px/1.2 var(--ff-font-ui);
+  font: 500 9px/1.1 var(--ff-font-ui);
 }
 
 .ff-catalog-footnote {

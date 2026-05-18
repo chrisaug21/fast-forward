@@ -14,11 +14,26 @@ function dedupeItems(items) {
     const existing = deduped.get(key);
 
     if (!existing) {
-      deduped.set(key, { ...item, streamingOn: [...item.streamingOn] });
+      deduped.set(key, {
+        ...item,
+        genres: Array.isArray(item.genres) ? [...new Set(item.genres)] : [],
+        streamingOn: [...item.streamingOn],
+      });
       return;
     }
 
     existing.streamingOn = [...new Set([...existing.streamingOn, ...item.streamingOn])];
+    existing.genres = [...new Set([...(existing.genres || []), ...(item.genres || [])])];
+    existing.tmdbId = existing.tmdbId ?? item.tmdbId ?? null;
+    existing.runtime = existing.runtime ?? item.runtime ?? null;
+    existing.imdbScore = existing.imdbScore ?? item.imdbScore ?? null;
+    existing.releaseYear = existing.releaseYear ?? item.releaseYear ?? null;
+    existing.overview = existing.overview || item.overview || "";
+    existing.description = existing.description || item.description || "";
+    existing.posterUrl = existing.posterUrl || item.posterUrl || null;
+    existing.backdropUrl = existing.backdropUrl || item.backdropUrl || null;
+    existing.imdbId = existing.imdbId || item.imdbId || null;
+    existing.contentRating = existing.contentRating || item.contentRating || null;
   });
 
   return [...deduped.values()];
@@ -43,12 +58,20 @@ function normalizeItem(rawItem, fallbackServiceLabel) {
       : [fallbackServiceLabel];
 
   return {
-    id: rawItem.tmdbId || rawItem.tmdb_id || rawItem.id || null,
+    id:
+      rawItem.tmdbId ||
+      rawItem.tmdb_id ||
+      rawItem.id ||
+      `${rawItem.title || rawItem.name || "unknown"}:${isSeries ? "show" : "movie"}:${
+        rawItem.releaseYear || rawItem.year || rawItem.firstAirYear || "unknown"
+      }`,
+    tmdbId: rawItem.tmdbId || rawItem.tmdb_id || null,
     title: rawItem.title || rawItem.name || "Unknown title",
     type: isSeries ? "TV Show" : "Movie",
     genres: Array.isArray(rawItem.genres)
       ? rawItem.genres.map((genre) => genre.name || genre).filter(Boolean)
       : [],
+    overview: rawItem.overview || rawItem.plot_overview || rawItem.summary || "",
     runtime: rawItem.runtime || rawItem.runtime_minutes || null,
     imdbScore: rawItem.rating ? Number(rawItem.rating) / 10 : rawItem.imdbRating || null,
     releaseYear: rawItem.releaseYear || rawItem.year || rawItem.firstAirYear || null,
@@ -58,6 +81,13 @@ function normalizeItem(rawItem, fallbackServiceLabel) {
       rawItem.poster_url ||
       rawItem.imageSet?.verticalPoster?.w360 ||
       null,
+    backdropUrl:
+      rawItem.backdrop ||
+      rawItem.backdrop_url ||
+      rawItem.imageSet?.horizontalBackdrop?.w720 ||
+      null,
+    imdbId: rawItem.imdbId || rawItem.imdb_id || null,
+    contentRating: rawItem.contentRating || rawItem.content_rating || null,
     streamingOn,
     source: "streaming",
   };
