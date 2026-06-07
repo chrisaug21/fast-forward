@@ -15,12 +15,14 @@ Personal watchlist and recommendation app. Plex stays client-side, while the str
 - If the cache is fresh, it returns cached data and does not call any upstream API.
 - If the cache is stale or missing, it tries Watchmode first and falls back to RapidAPI Streaming Availability only if Watchmode fails.
 - The function normalizes the provider response before storing it back in Supabase.
+- A daily Netlify keep-alive function reads the cache table so the Supabase project stays active during quiet periods.
 
 ## Files
 - `src/utils/streaming.js`: client call to the Netlify function
 - `src/utils/supabase.js`: shared browser Supabase client
 - `src/hooks/useCatalog.js`: catalog state and streaming load flow
 - `netlify/functions/fetch-streaming.js`: cache-first server function
+- `netlify/functions/keep-alive.js`: scheduled Supabase keep-alive read
 - `supabase/migrations/20260517203000_create_streaming_cache.sql`: table and RLS setup
 
 ## Environment Variables
