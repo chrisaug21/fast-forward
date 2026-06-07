@@ -12,6 +12,9 @@
   WATCHMODE_API_KEY = "Set in Netlify UI for Functions scope"
   RAPIDAPI_KEY = "Set in Netlify UI for Functions scope"
 
+[functions."keep-alive"]
+  schedule = "@daily"
+
 [[redirects]]
   from = "/*"
   to = "/index.html"
